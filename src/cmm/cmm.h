@@ -11,13 +11,13 @@ typedef struct Header {
 typedef struct ObjectWrapper {
 	Header *header;
 	void *object;
-} Object;
+} ObjectWrapper;
 
 #define NEW(Type) Object_new(sizeof(Type))
 
 static inline void *Object_new(size_t object_size)
 {
-	ObjectWrapper wrapper = calloc(1, sizeof(ObjectWrapper));
+	ObjectWrapper *wrapper = calloc(1, sizeof(ObjectWrapper));
 	check_mem(wrapper);
 	
 	wrapper->header = calloc(1, sizeof(Header));
@@ -46,7 +46,12 @@ static inline void Object_release(void *object_ref)
 {
 	Header *header = Object_get_header(object_ref);
 
-	header->ref_count--;		
+	header->ref_count--;
+
+	if(header->ref_count == 0) {
+		free(header);
+		free(object_ref);
+	}
 }
 
 #define OBJECT(Type, Ptr) Type * Ptr __attribute__((cleanup(Object_release)))
