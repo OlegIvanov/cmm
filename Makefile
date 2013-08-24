@@ -35,7 +35,7 @@ $(TESTS): %_tests: %_tests.c $(TARGET)
 # The Unit Tests
 .PHONY: tests
 tests:
-	#sh ./tests/runtests.sh
+	sh ./tests/runtests.sh
 
 valgrind:
 	VALGRIND="valgrind --log-file=/tmp/valgrind-%p.log" $(MAKE)

@@ -8,26 +8,47 @@ typedef struct Header {
 	uint32_t ref_count;	
 } Header;
 
-typedef struct Object {
-	Header header;
-	void *data;
+typedef struct ObjectWrapper {
+	Header *header;
+	void *object;
 } Object;
 
-#define NEW(T) Object_new(sizeof(T))
+#define NEW(Type) Object_new(sizeof(Type))
 
-static inline void *Object_new(size_t size)
+static inline void *Object_new(size_t object_size)
 {
-	Object obj = calloc(1, sizeof(Object));
-	check_mem(obj);
+	ObjectWrapper wrapper = calloc(1, sizeof(ObjectWrapper));
+	check_mem(wrapper);
 	
-	obj->data = calloc(1, sizeof(size));
-	check_mem(obj->data);
+	wrapper->header = calloc(1, sizeof(Header));
+	check_mem(wrapper->header);
 
-	return obj->data;
+	wrapper->object = calloc(1, sizeof(object_size));
+	check_mem(wrapper->object);
+
+	wrapper->header->ref_count = 1;
+
+	return wrapper->object;
 	
 error:
-	free(obj);
+	free(wrapper->header);
+	free(wrapper->object);
+	free(wrapper);
 	return NULL;
 }
+
+static inline Header *Object_get_header(void *object_ref)
+{
+	return ((Header *)object_ref) - 1;
+}
+
+static inline void Object_release(void *object_ref)
+{
+	Header *header = Object_get_header(object_ref);
+
+	header->ref_count--;		
+}
+
+#define OBJECT(Type, Ptr) Type * Ptr __attribute__((cleanup(Object_release)))
 
 #endif
