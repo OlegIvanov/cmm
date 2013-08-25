@@ -10,6 +10,10 @@ typedef struct Header {
 
 #define NEW(Type) Object_new(sizeof(Type))
 
+#define REF(Type, Identifier) Type * Identifier __attribute__((cleanup(Object_release)))
+
+#define ASS(Left, Right) Object_retain(&(Left), &(Right))
+
 static inline void *Object_new(size_t object_size)
 {
 	Header *header = calloc(1, sizeof(Header) + object_size);
@@ -24,14 +28,16 @@ error:
 	return NULL;
 }
 
-static inline Header *Object_get_header(void *object_ref)
+static inline Header *Object_get_header(void *object)
 {
-	return ((Header *)object_ref) - 1;
+	return ((Header *)object) - 1;
 }
 
-static inline void Object_release(void **object_ref)
+static inline void Object_release(void **object)
 {
-	Header *header = Object_get_header(*object_ref);
+	if(*object == NULL) return;
+
+	Header *header = Object_get_header(*object);
 
 	header->ref_count--;
 
@@ -40,6 +46,16 @@ static inline void Object_release(void **object_ref)
 	}
 }
 
-#define OBJECT(Type, Ptr) Type * Ptr __attribute__((cleanup(Object_release)))
+static inline void Object_retain(void **object_left, void **object_right)
+{
+	if(*object_right != NULL) {
+		Header *header = Object_get_header(*object_right);
+		header->ref_count++;
+	}
+
+	Object_release(object_left);
+
+	*object_left = *object_right;
+}
 
 #endif
