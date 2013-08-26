@@ -10,15 +10,19 @@ typedef struct ComplexStruct {
 	SimpleStruct* ss;
 } ComplexStruct;
 
+typedef struct MostComplexStruct {
+	char simple_char;
+	ComplexStruct *cs;
+} MostComplexStruct;
+
 char *test()
 {
 	REF(ComplexStruct, cs1) = NEW_OBJ(ComplexStruct);
-
 	NEW_FLD(SimpleStruct, cs1, ss);
 
-	//REF(ComplexStruct, cs2) = NEW_OBJ(ComplexStruct);
-
-	//ASS(cs2->ss, cs1->ss);
+	REF(MostComplexStruct, mcs1) = NEW_OBJ(MostComplexStruct);
+	NEW_FLD(ComplexStruct, mcs1, cs);
+	NEW_FLD(SimpleStruct, mcs1->cs, ss);
 
 	return NULL;
 }

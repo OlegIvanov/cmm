@@ -50,8 +50,8 @@ static inline void Object_new_field(size_t field_size, void *object, void **fiel
 {
 	Header *header = Object_get_header(object);
 
-	uint32_t set_bit = ((void *)field - object) / ALIGNMENT;
-	header->descriptor.ref_map |= ONE << set_bit;
+	uint32_t bit = ((void *)field - object) / ALIGNMENT;
+	header->descriptor.ref_map |= ONE << bit;
 	
 	*field = Object_new(field_size);
 }
@@ -63,13 +63,13 @@ static inline void Object_release(void **object)
 	Header *header = Object_get_header(*object);
 
 	int i = 0;
-	uint32_t bit_value = 0;
+	uint32_t bit = 0;
 	uint32_t ref_map = header->descriptor.ref_map;
 
 	for(i = 0; i < BIT_SIZE; i++) {
-		bit_value = ref_map & ONE;
+		bit = ref_map & ONE;
 
-		if(bit_value) Object_release(*object + i * ALIGNMENT);
+		if(bit) Object_release(*object + i * ALIGNMENT);
 
 		ref_map = ref_map >> ONE;
 	}
