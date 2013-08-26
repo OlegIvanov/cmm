@@ -12,9 +12,13 @@ typedef struct ComplexStruct {
 
 char *test()
 {
-	REF(ComplexStruct, cs) = NEW_OBJ(ComplexStruct);
+	REF(ComplexStruct, cs1) = NEW_OBJ(ComplexStruct);
 
-	NEW_FLD(SimpleStruct, cs, cs->ss);
+	NEW_FLD(SimpleStruct, cs1, ss);
+
+	//REF(ComplexStruct, cs2) = NEW_OBJ(ComplexStruct);
+
+	//ASS(cs2->ss, cs1->ss);
 
 	return NULL;
 }

@@ -15,7 +15,7 @@ typedef struct Header {
 
 #define NEW_OBJ(Type) Object_new(sizeof(Type))
 
-#define NEW_FLD(Type, ParentObject, ParentField) Object_new_field(sizeof(Type), ParentObject, &(ParentField))
+#define NEW_FLD(Type, Object, Field) Object_new_field(sizeof(Type), Object, &(Object->Field))
 
 #define REF(Type, Identifier) Type * Identifier __attribute__((cleanup(Object_release)))
 
@@ -46,19 +46,14 @@ static inline Header *Object_get_header(void *object)
 	return ((Header *)object) - 1;
 }
 
-static inline void Object_new_field(size_t object_size, void *parent_object, void **parent_field)
+static inline void Object_new_field(size_t field_size, void *object, void **field)
 {
-	check(parent_object, "Parent object can't be NULL.");
+	Header *header = Object_get_header(object);
 
-	Header *parent_header = Object_get_header(parent_object);
-
-	uint32_t set_bit = ((void *)parent_field - parent_object) / ALIGNMENT;
-	parent_header->descriptor.ref_map |= ONE << set_bit;
+	uint32_t set_bit = ((void *)field - object) / ALIGNMENT;
+	header->descriptor.ref_map |= ONE << set_bit;
 	
-	*parent_field = Object_new(object_size);
-
-error:
-	return;
+	*field = Object_new(field_size);
 }
 
 static inline void Object_release(void **object)
