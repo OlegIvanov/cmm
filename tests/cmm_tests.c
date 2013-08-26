@@ -2,9 +2,24 @@
 #include <cmm/cmm.h>
 
 typedef struct SimpleStruct {
-	int simple_field;
+	int simple_int;
 } SimpleStruct;
 
+typedef struct ComplexStruct {
+	char simple_char;
+	SimpleStruct ss;
+} ComplexStruct;
+
+char *test()
+{
+	REF(ComplexStruct, cs) = NEW_OBJ(ComplexStruct);
+
+	NEW_FLD(SimpleStruct, cs, cs->ss);
+
+	return NULL;
+}
+
+/*
 char *test()
 {
  	REF(SimpleStruct, ref1) = NEW(SimpleStruct);
@@ -23,7 +38,7 @@ char *test()
 
 	return NULL;
 }
-/*
+
 char *test2()
 {
 	REF(SimpleStruct, ref1) = NEW(SimpleStruct);
@@ -37,6 +52,7 @@ char *test2()
 	return NULL;
 }
 */
+
 char *all_tests() {
 	mu_suite_start();
 

@@ -4,11 +4,18 @@
 #include <stdint.h>
 #include <cmm/dbg.h>
 
+typedef struct Descriptor {
+	uint32_t ref_map;
+} Descriptor;
+
 typedef struct Header {
+	Descriptor descriptor;
 	uint32_t ref_count;	
 } Header;
 
-#define NEW(Type) Object_new(sizeof(Type))
+#define NEW_OBJ(Type) Object_new(sizeof(Type))
+
+#define NEW_FLD(Type, ParentObject, ParentField) Object_new_field(sizeof(Type), ParentObject, &(ParentField))
 
 #define REF(Type, Identifier) Type * Identifier __attribute__((cleanup(Object_release)))
 
@@ -31,6 +38,19 @@ error:
 static inline Header *Object_get_header(void *object)
 {
 	return ((Header *)object) - 1;
+}
+
+static inline void Object_new_field(size_t object_size, void *parent_object, void **parent_field)
+{
+	if(parent_object == NULL) return;
+
+	Header *parent_header = Object_get_header(parent_object);
+
+	uint32_t set_bit = ((void *)parent_field - parent_object) / 8;
+	uint32_t mask = (uint32_t)1 << set_bit;
+	parent_header->descriptor.ref_map |= mask;
+	
+	*parent_field = Object_new(object_size);
 }
 
 static inline void Object_release(void **object)
