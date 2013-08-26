@@ -21,6 +21,12 @@ typedef struct Header {
 
 #define ASS(Left, Right) Object_retain(&(Left), &(Right))
 
+#define ONE 1U
+
+#define BIT_SIZE 32
+
+#define ALIGNMENT 8
+
 static inline void *Object_new(size_t object_size)
 {
 	Header *header = calloc(1, sizeof(Header) + object_size);
@@ -42,15 +48,17 @@ static inline Header *Object_get_header(void *object)
 
 static inline void Object_new_field(size_t object_size, void *parent_object, void **parent_field)
 {
-	if(parent_object == NULL) return;
+	check(parent_object, "Parent object can't be NULL.");
 
 	Header *parent_header = Object_get_header(parent_object);
 
-	uint32_t set_bit = ((void *)parent_field - parent_object) / 8;
-	uint32_t mask = (uint32_t)1 << set_bit;
-	parent_header->descriptor.ref_map |= mask;
+	uint32_t set_bit = ((void *)parent_field - parent_object) / ALIGNMENT;
+	parent_header->descriptor.ref_map |= ONE << set_bit;
 	
 	*parent_field = Object_new(object_size);
+
+error:
+	return;
 }
 
 static inline void Object_release(void **object)
@@ -58,6 +66,18 @@ static inline void Object_release(void **object)
 	if(*object == NULL) return;
 
 	Header *header = Object_get_header(*object);
+
+	int i = 0;
+	uint32_t bit_value = 0;
+	uint32_t ref_map = header->descriptor.ref_map;
+
+	for(i = 0; i < BIT_SIZE; i++) {
+		bit_value = ref_map & ONE;
+
+		if(bit_value) Object_release(*object + i * ALIGNMENT);
+
+		ref_map = ref_map >> ONE;
+	}
 
 	header->ref_count--;
 
