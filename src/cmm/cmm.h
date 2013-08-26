@@ -13,11 +13,11 @@ typedef struct Header {
 	uint32_t ref_count;	
 } Header;
 
-#define NEW_OBJ(Type) Object_new(sizeof(Type))
+#define OBJECT(Type, Ref) Object_new(sizeof(Type), &(Ref))
 
-#define NEW_FLD(Type, Object, Field) Object_new_field(sizeof(Type), Object, &(Object->Field))
+#define FIELD(Type, Object, Field) Object_new_field(sizeof(Type), Object, &(Object->Field))
 
-#define REF(Type, Identifier) Type * Identifier __attribute__((cleanup(Object_release)))
+#define REF(Type, Identifier) Type * Identifier __attribute__((cleanup(Object_release))) = NULL
 
 #define ASS(Left, Right) Object_retain(&(Left), &(Right))
 
@@ -27,18 +27,13 @@ typedef struct Header {
 
 #define ALIGNMENT 8
 
-static inline void *Object_new(size_t object_size)
+static inline void Object_new(size_t object_size, void **object_ref)
 {
 	Header *header = calloc(1, sizeof(Header) + object_size);
-	check_mem(header);
 
 	header->ref_count = 1;
 
-	return ++header;
-
-error:
-	free(header);
-	return NULL;
+	*object_ref = ++header;
 }
 
 static inline Header *Object_get_header(void *object)
@@ -53,7 +48,7 @@ static inline void Object_new_field(size_t field_size, void *object, void **fiel
 	uint32_t bit = ((void *)field - object) / ALIGNMENT;
 	header->descriptor.ref_map |= ONE << bit;
 	
-	*field = Object_new(field_size);
+	Object_new(field_size, field);
 }
 
 static inline void Object_release(void **object)

@@ -7,7 +7,7 @@ typedef struct SimpleStruct {
 
 typedef struct ComplexStruct {
 	char simple_char;
-	SimpleStruct* ss;
+	SimpleStruct *ss;
 } ComplexStruct;
 
 typedef struct MostComplexStruct {
@@ -17,12 +17,14 @@ typedef struct MostComplexStruct {
 
 char *test()
 {
-	REF(ComplexStruct, cs1) = NEW_OBJ(ComplexStruct);
-	NEW_FLD(SimpleStruct, cs1, ss);
+	REF(ComplexStruct, cs1);
+	OBJECT(ComplexStruct, cs1);
+	FIELD(SimpleStruct, cs1, ss);
 
-	REF(MostComplexStruct, mcs1) = NEW_OBJ(MostComplexStruct);
-	NEW_FLD(ComplexStruct, mcs1, cs);
-	NEW_FLD(SimpleStruct, mcs1->cs, ss);
+	REF(MostComplexStruct, mcs1);
+	OBJECT(MostComplexStruct, mcs1);
+	FIELD(ComplexStruct, mcs1, cs);
+	FIELD(SimpleStruct, mcs1->cs, ss);
 
 	return NULL;
 }
