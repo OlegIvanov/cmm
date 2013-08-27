@@ -1,38 +1,45 @@
 #include "minunit.h"
 #include <cmm/cmm.h>
 
-typedef struct SimpleStruct {
-	int simple_int;
-} SimpleStruct;
+typedef struct A {
+	int F_int;
+} A;
 
-typedef struct ComplexStruct {
-	char simple_char;
-	SimpleStruct *ss;
-} ComplexStruct;
+typedef struct B {
+	char Fchar;
+	A *F_A;
+} B;
 
-typedef struct MostComplexStruct {
-	char simple_char;
-	ComplexStruct *cs;
-} MostComplexStruct;
+typedef struct C {
+	char Fchar;
+	B *F_B;
+} C;
 
-char *test()
+char *test_cascade()
 {
-	REF(ComplexStruct, cs1);
-	OBJECT(ComplexStruct, cs1);
-	FIELD(SimpleStruct, cs1, ss);
+	REF(B, b1);
 
-	REF(MostComplexStruct, mcs1);
-	OBJECT(MostComplexStruct, mcs1);
-	FIELD(ComplexStruct, mcs1, cs);
-	FIELD(SimpleStruct, mcs1->cs, ss);
+	OBJECT(B, b1);
+	FIELD(A, b1, F_A);
 
+	REF(C, c1);
+
+	OBJECT(C, c1);
+	FIELD(B, c1, F_B);
+	FIELD(A, c1->F_B, F_A);
+
+	return NULL;
+}
+
+char *test_assign()
+{
 	return NULL;
 }
 
 char *all_tests() {
 	mu_suite_start();
 
-	mu_run_test(test);
+	mu_run_test(test_cascade);
 
 	return NULL;
 }
