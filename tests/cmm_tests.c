@@ -33,6 +33,14 @@ char *test_cascade()
 
 char *test_assign()
 {
+	REF(A, a1);
+	OBJECT(A, a1);
+
+	REF(B, b1);
+	OBJECT(B, b1);
+
+	ASSIGN(b1->F_A, a1);
+
 	return NULL;
 }
 
@@ -40,6 +48,7 @@ char *all_tests() {
 	mu_suite_start();
 
 	mu_run_test(test_cascade);
+	mu_run_test(test_assign);
 
 	return NULL;
 }
