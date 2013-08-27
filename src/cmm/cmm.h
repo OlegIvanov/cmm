@@ -27,9 +27,9 @@ static inline void Object_retain(void **lvalue, void **rvalue);
 
 #define FIELD(Type, Object, Field) Object_new_field(sizeof(Type), Object, &(Object->Field))
 
-#define REF(Type, Identifier) Type * Identifier __attribute__((cleanup(Object_release))) = NULL
+#define REF(Type, Name) Type * Name __attribute__((cleanup(Object_release))) = NULL
 
-#define ASS(Left, Right) Object_retain(&(Left), &(Right))
+#define ASSIGN(LRef, RRef) Object_retain(&(LRef), &(RRef))
 
 #define ONE 1U
 
