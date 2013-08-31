@@ -122,9 +122,11 @@ void GC_allocate_block(GC *gc, int n, int sz)
 		bi = bi->hash_link;
 	}
 
-	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
-	BlockHeader *header = GC_create_block_header();
+	BlockHeader *header = GC_create_block_header(sz);
 
+	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
+	bi->index[bottom] = header;
+	
 error:
 	return;
 }
@@ -163,10 +165,12 @@ error:
 	return NULL;
 }
 
-BlockHeader *GC_create_block_header()
+BlockHeader *GC_create_block_header(GC *gc, int sz)
 {
 	BlockHeader *header = calloc(1, sizeof(BlockHeader));
 	check_mem(header);
+
+	header->size = gc->size_map[sz];
 
 	return header;
 error:

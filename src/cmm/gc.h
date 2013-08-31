@@ -51,6 +51,6 @@ void GC_subdivide_block(GC *gc, void *block, int sz);
 
 BottomIndex *GC_create_bottom_index(GC *gc, void *block);
 
-BlockHeader *GC_create_block_header();
+BlockHeader *GC_create_block_header(GC *gc, int sz);
 
 #endif
