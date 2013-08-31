@@ -45,8 +45,12 @@ void GC_allocate_block(GC *gc, int n, int sz)
 
 	GC_subdivide_block(gc, block, sz);
 
-	if(gc->top_index[sz] == gc->all_nils) {
-				
+	BottomIndex *bi = NULL;
+	uint32_t top = ((uint64_t)block << KEY_BIT) >> (WORD_BIT - KEY_BIT);
+
+	if(gc->top_index[top] == gc->all_nils) {
+		bi = GC_create_bottom_index(gc, block);
+		gc->top_index[top] = bi;
 	}
 
 error:
@@ -62,7 +66,7 @@ void GC_subdivide_block(GC *gc, void *block, int sz)
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
 
 	int i = 0;
-	uint16_t object_sz = gc->size_map[sz];
+	uint32_t object_sz = gc->size_map[sz];
 
 	for(i = 0; i < BLOCK_SZ / object_sz; i++) {
 		List_push(freelist, block + i * object_sz);
@@ -80,7 +84,7 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
 	check_mem(bi);
 	
-	bi->key = block >> LOG_TOP_SZ + LOG_BOTTOM_SZ + LOG_BLOCK_SZ;
+	bi->key = (uint64_t)block >> (WORD_BIT - KEY_BIT);
 	bi->hash_link = List_create();
 
 	return bi;

@@ -20,6 +20,9 @@
 
 #define SIZE_SZ					((LOG_BLOCK_SZ) - (LOG_MIN_ALLOC_UNIT))
 
+#define WORD_BIT				sizeof(void *) * 8
+#define KEY_BIT					(WORD_BIT - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
+
 typedef struct BlockHeader {
 	uint32_t size;
 } BlockHeader;
@@ -33,7 +36,7 @@ typedef struct BottomIndex {
 typedef struct GC {
 	BottomIndex *top_index[TOP_SZ];
 	BottomIndex *all_nils;
-	uint16_t size_map[SIZE_SZ];
+	uint32_t size_map[SIZE_SZ];
 	List *freelist[SIZE_SZ];
 } GC;
 
