@@ -1,6 +1,21 @@
 #include <cmm/gc.h>
 #include <cmm/dbg.h>
 
+static inline uintptr_t GC_get_key(uintptr_t ptr)
+{
+	return ptr >> (__WORDSIZE - KEY_BIT);
+}
+
+static inline uintptr_t GC_get_top(uintptr_t ptr)
+{
+	return (ptr << KEY_BIT) >> (__WORDSIZE - KEY_BIT);
+}
+
+static inline uintptr_t GC_get_bottom(uintptr_t ptr)
+{
+	return (ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - KEY_BIT);
+}
+
 GC *GC_create()
 {
 	GC *gc = calloc(1, sizeof(GC));
@@ -46,12 +61,27 @@ void GC_allocate_block(GC *gc, int n, int sz)
 	GC_subdivide_block(gc, block, sz);
 
 	BottomIndex *bi = NULL;
-	uint32_t top = ((uint64_t)block << KEY_BIT) >> (WORD_BIT - KEY_BIT);
+	uintptr_t top = GC_get_top((uintptr_t)block);
 
 	if(gc->top_index[top] == gc->all_nils) {
 		bi = GC_create_bottom_index(gc, block);
 		gc->top_index[top] = bi;
 	}
+
+	bi = gc->top_index[top];
+	uintptr_t key = GC_get_key((uintptr_t)block);
+	
+	if(bi->key != key) {
+		while(bi->hash_link) {
+			bi = bi->hash_link;
+		}
+
+		bi->hash_link = GC_create_bottom_index(gc, block);
+		bi = bi->hash_link;
+	}
+
+	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
+	BlockHeader *header = GC_create_block_header();
 
 error:
 	return;
@@ -65,8 +95,8 @@ void GC_subdivide_block(GC *gc, void *block, int sz)
 	List *freelist = gc->freelist[sz];
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
 
-	int i = 0;
-	uint32_t object_sz = gc->size_map[sz];
+	unsigned int i = 0;
+	unsigned int object_sz = gc->size_map[sz];
 
 	for(i = 0; i < BLOCK_SZ / object_sz; i++) {
 		List_push(freelist, block + i * object_sz);
@@ -84,10 +114,19 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
 	check_mem(bi);
 	
-	bi->key = (uint64_t)block >> (WORD_BIT - KEY_BIT);
-	bi->hash_link = List_create();
+	bi->key = GC_get_key((uintptr_t)block);
 
 	return bi;
+error:
+	return NULL;
+}
+
+BlockHeader *GC_create_block_header()
+{
+	BlockHeader *header = calloc(1, sizeof(BlockHeader));
+	check_mem(header);
+
+	return header;
 error:
 	return NULL;
 }

@@ -20,23 +20,24 @@
 
 #define SIZE_SZ					((LOG_BLOCK_SZ) - (LOG_MIN_ALLOC_UNIT))
 
-#define WORD_BIT				sizeof(void *) * 8
-#define KEY_BIT					(WORD_BIT - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
+#define KEY_BIT					(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
 typedef struct BlockHeader {
 	uint32_t size;
 } BlockHeader;
 
+struct BottomIndex;
+
 typedef struct BottomIndex {
 	BlockHeader *index[BOTTOM_SZ];
-	uint32_t key;
-	List *hash_link;
+	uintptr_t key;
+	struct BottomIndex *hash_link;
 } BottomIndex;
 
 typedef struct GC {
 	BottomIndex *top_index[TOP_SZ];
 	BottomIndex *all_nils;
-	uint32_t size_map[SIZE_SZ];
+	unsigned int size_map[SIZE_SZ];
 	List *freelist[SIZE_SZ];
 } GC;
 
@@ -47,6 +48,10 @@ int GC_get_size(GC *gc, size_t size);
 void GC_allocate_block(GC *gc, int n, int sz);
 
 void GC_subdivide_block(GC *gc, void *block, int sz);
+
+BottomIndex *GC_create_bottom_index(GC *gc, void *block);
+
+BlockHeader *GC_create_block_header();
 
 static int GC_init_top_index(GC *gc)
 {
