@@ -3,8 +3,6 @@
 
 #include <cmm/list.h>
 
-typedef struct Allocator {
-		
-} Allocator;
+
 
 #endif

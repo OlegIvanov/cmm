@@ -1,5 +1,5 @@
-#ifndef lcthw_List_h
-#define lcthw_List_h
+#ifndef _list_h
+#define _list_h
 
 #include <stdlib.h>
 
