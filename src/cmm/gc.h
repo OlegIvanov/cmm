@@ -2,7 +2,9 @@
 #define _gc_h
 
 #include <cmm/list.h>
+#include <cmm/dbg.h>
 #include <stdint.h>
+#include <math.h>
 
 #define TOP_SZ					2048
 #define LOG_TOP_SZ				11
@@ -37,10 +39,50 @@ typedef struct GC {
 
 GC *GC_create();
 
-static int GC_init_top_index(GC *gc);
-
-static int GC_init_size_map(GC *gc);
+int GC_get_size(GC *gc, size_t size);
 
 void *GC_allocate_block(int n);
+
+static int GC_init_top_index(GC *gc)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	int i = 0;
+	for(i = 0; i < TOP_SZ; i++) {
+		gc->top_index[i] = gc->all_nils;
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
+static int GC_init_size_map(GC *gc)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	int i = 0;
+	for(i = 0; i < SIZE_SZ; i++) {
+		gc->size_map[i] = powl(2, i + LOG_MIN_ALLOC_UNIT);
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
+static int GC_init_freelist(GC *gc)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	int i = 0;
+	for(i = 0; i < SIZE_SZ; i++) {
+		gc->freelist[i] = List_create();
+	}
+
+	return 0;
+error:
+	return -1;
+}
 
 #endif
