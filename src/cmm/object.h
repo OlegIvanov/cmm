@@ -5,6 +5,6 @@
 
 #define New(Type, Ptr) Object_new(_gc_, sizeof(Type), &(Ptr))
 
-void Object_new(GC gc, size_t size, void **obj);
+void Object_new(GC *gc, size_t size, void **obj);
 
 #endif

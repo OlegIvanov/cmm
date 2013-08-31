@@ -41,7 +41,9 @@ GC *GC_create();
 
 int GC_get_size(GC *gc, size_t size);
 
-void *GC_allocate_block(int n);
+void GC_allocate_block(GC *gc, int n, int sz);
+
+void GC_subdivide_block(GC *gc, void *block, int sz);
 
 static int GC_init_top_index(GC *gc)
 {
