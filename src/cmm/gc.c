@@ -112,17 +112,17 @@ void GC_allocate_block(GC *gc, int n, int sz)
 
 	bi = gc->top_index[top];
 	uintptr_t key = GC_get_key((uintptr_t)block);
-	
-	if(bi->key != key) {
-		while(bi->hash_link) {
-			bi = bi->hash_link;
-		}
 
-		bi->hash_link = GC_create_bottom_index(gc, block);
+	while(bi->key != key) {
 		bi = bi->hash_link;
+
+		if(bi == NULL) {
+			bi = GC_create_bottom_index(gc, block);
+			break;
+		}
 	}
 
-	BlockHeader *header = GC_create_block_header(sz);
+	BlockHeader *header = GC_create_block_header(gc, sz);
 
 	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
 	bi->index[bottom] = header;
