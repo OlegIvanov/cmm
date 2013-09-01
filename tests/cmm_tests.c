@@ -48,8 +48,20 @@ char *test_assign()
 }
 */
 
+char *new_test()
+{
+	A *a = NULL;
+
+	New(A, a);
+	
+	return NULL;
+}
+
 char *all_tests() {
-	//mu_suite_start();
+	mu_suite_start();
+
+	mu_run_test(new_test);
+
 	/*
 	mu_run_test(test_cascade);
 	mu_run_test(test_assign);

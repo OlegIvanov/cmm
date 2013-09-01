@@ -73,12 +73,12 @@ static inline uintptr_t GC_get_key(uintptr_t ptr)
 
 static inline uintptr_t GC_get_top(uintptr_t ptr)
 {
-	return (ptr << KEY_BIT) >> (__WORDSIZE - KEY_BIT);
+	return (ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ);
 }
 
 static inline uintptr_t GC_get_bottom(uintptr_t ptr)
 {
-	return (ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - KEY_BIT);
+	return (ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ);
 }
 
 GC *GC_create()
