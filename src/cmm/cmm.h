@@ -6,13 +6,13 @@
 extern GC *__GC__;
 
 #ifdef CMM
-__attribute__ ((constructor)) void cmm_init()
+__attribute__((constructor)) void cmm_init()
 { 
 	__GC__ = GC_create();
 }
 #endif
 
-#define New(Type, Ptr) Object_new(__GC__, sizeof(Type), &(Ptr))
+#define New(Type, Ptr) Object_new(__GC__, sizeof(Type), (void **)&(Ptr))
 
 void Object_new(GC *gc, size_t size, void **obj);
 

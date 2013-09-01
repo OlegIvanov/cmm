@@ -158,7 +158,7 @@ error:
 void GC_subdivide_block(GC *gc, void *block, int sz)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
-	check(gc, "Argument 'block' can't be NULL.");
+	check(block, "Argument 'block' can't be NULL.");
 
 	List *freelist = gc->freelist[sz];
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
@@ -177,7 +177,7 @@ error:
 BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
-	check(gc, "Argument 'block' can't be NULL.");
+	check(block, "Argument 'block' can't be NULL.");
 
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
 	check_mem(bi);
@@ -191,6 +191,8 @@ error:
 
 BlockHeader *GC_create_block_header(GC *gc, int sz)
 {
+	check(gc, "Argument 'gc' can't be NULL.");
+
 	BlockHeader *header = calloc(1, sizeof(BlockHeader));
 	check_mem(header);
 

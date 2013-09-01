@@ -13,46 +13,18 @@ typedef struct B {
 } B;
 
 typedef struct C {
+	int F_int_arr[10];
 	char Fchar;
 	B *F_B;
 } C;
 
-/*
 char *test_cascade()
 {
-	REF(B, b1);
+	C *c = NULL;
 
-	OBJECT(B, b1);
-	FIELD(A, b1, F_A);
-
-	REF(C, c1);
-
-	OBJECT(C, c1);
-	FIELD(B, c1, F_B);
-	FIELD(A, c1->F_B, F_A);
-
-	return NULL;
-}
-
-char *test_assign()
-{
-	REF(A, a1);
-	OBJECT(A, a1);
-
-	REF(B, b1);
-	OBJECT(B, b1);
-
-	ASSIGN(b1->F_A, a1);
-
-	return NULL;
-}
-*/
-
-char *new_test()
-{
-	A *a = NULL;
-
-	New(A, a);
+	New(C, c);
+	New(B, c->F_B);
+	New(A, c->F_B->F_A);
 	
 	return NULL;
 }
@@ -60,12 +32,7 @@ char *new_test()
 char *all_tests() {
 	mu_suite_start();
 
-	mu_run_test(new_test);
-
-	/*
 	mu_run_test(test_cascade);
-	mu_run_test(test_assign);
-	*/
 
 	return NULL;
 }
