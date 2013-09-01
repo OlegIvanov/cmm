@@ -203,3 +203,62 @@ BlockHeader *GC_create_block_header(GC *gc, int sz)
 error:
 	return NULL;
 }
+
+inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
+{
+	uintptr_t top = GC_get_top(ptr);
+	BottomIndex *bi = gc->top_index[top];
+
+	uintptr_t key = GC_get_key(ptr);
+	while(bi->key != key) bi = bi->hash_link;
+
+	uintptr_t bottom = GC_get_bottom(ptr);
+	return bi->index[bottom];
+}
+
+inline void GC_test_ptr(GC *gc, uintptr_t ptr)
+{
+	uintptr_t top = GC_get_top(ptr);
+	BottomIndex *bi = gc->top_index[top];
+
+	if(bi == gc->all_nils) return;
+
+	uintptr_t key = GC_get_key(ptr);
+	while(bi->key != key) bi = bi->hash_link;
+	
+	if(bi == NULL) return;
+}
+
+
+/*
+	void *block = NULL;
+	int rc = posix_memalign(&block, BLOCK_SZ, n * BLOCK_SZ);
+	check(rc == 0, "Allocating block error occured.");
+
+	GC_subdivide_block(gc, block, sz);
+
+	BottomIndex *bi = NULL;
+	uintptr_t top = GC_get_top((uintptr_t)block);
+
+	if(gc->top_index[top] == gc->all_nils) {
+		bi = GC_create_bottom_index(gc, block);
+		gc->top_index[top] = bi;
+	}
+
+	bi = gc->top_index[top];
+	uintptr_t key = GC_get_key((uintptr_t)block);
+
+	while(bi->key != key) {
+		bi = bi->hash_link;
+
+		if(bi == NULL) {
+			bi = GC_create_bottom_index(gc, block);
+			break;
+		}
+	}
+
+	BlockHeader *header = GC_create_block_header(gc, sz);
+
+	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
+	bi->index[bottom] = header;
+*/

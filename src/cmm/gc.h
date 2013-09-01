@@ -49,11 +49,11 @@ typedef struct GC {
 
 typedef struct ObjectDescriptor {
 	uintptr_t ref_count;
-	uintptr_t ref_map;	
+	uintptr_t ref_map;
 } ObjectDescriptor;
 
 typedef struct ObjectHeader {
-	ObjectDescriptor *obj_desc;
+	ObjectDescriptor *desc;
 } ObjectHeader;
 
 GC *GC_create();
@@ -67,5 +67,9 @@ void GC_subdivide_block(GC *gc, void *block, int sz);
 BottomIndex *GC_create_bottom_index(GC *gc, void *block);
 
 BlockHeader *GC_create_block_header(GC *gc, int sz);
+
+inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr);
+
+inline void GC_test_ptr(GC *gc, uintptr_t ptr);
 
 #endif
