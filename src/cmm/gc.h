@@ -20,9 +20,11 @@
 
 #define SIZE_SZ					((LOG_BLOCK_SZ) - (LOG_MIN_ALLOC_UNIT))
 
-#define KEY_BIT					(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
+#define KEY_BIT					((__WORDSIZE) - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
-#define MAX_OFFSET				((BLOCK_SZ) / __WORDSIZE)
+#define MAX_OFFSET				((BLOCK_SZ) / (__WORDSIZE))
+
+#define WORDSIZEBYTE			((__WORDSIZE) / 8)
 
 typedef struct BlockHeader {
 	uint32_t size;

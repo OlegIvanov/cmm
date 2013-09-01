@@ -20,8 +20,10 @@ static int GC_init_size_map(GC *gc)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	int i = 0;
-	for(i = 0; i < SIZE_SZ; i++) {
-		gc->size_map[i] = powl(2, i + LOG_MIN_ALLOC_UNIT);
+	gc->size_map[0] = MIN_ALLOC_UNIT;
+
+	for(i = 1; i < SIZE_SZ; i++) {
+		gc->size_map[i] = gc->size_map[i - 1] * 2;
 	}
 
 	return 0;
@@ -49,9 +51,10 @@ static int GC_init_obj_map(GC *gc)
 
 	int j = 0;
 	int i = 0;
+	uint32_t size_words;
 
 	for(j = 0; j < SIZE_SZ; j++) {
-		uint32_t size_words = gc->size_map[j] / __WORDSIZE;
+		size_words = gc->size_map[j] / WORDSIZEBYTE;
 
 		for(i = 0; i < MAX_OFFSET; i++) {
 			*(gc->obj_map + j * MAX_OFFSET + i) = i % size_words;
