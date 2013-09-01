@@ -43,6 +43,26 @@ error:
 	return -1;
 }
 
+static int GC_init_obj_map(GC *gc)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	int j = 0;
+	int i = 0;
+
+	for(j = 0; j < SIZE_SZ; j++) {
+		uint32_t size_words = gc->size_map[j] / __WORDSIZE;
+
+		for(i = 0; i < MAX_OFFSET; i++) {
+			*(gc->obj_map + j * MAX_OFFSET + i) = i % size_words;
+		}
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
 static inline uintptr_t GC_get_key(uintptr_t ptr)
 {
 	return ptr >> (__WORDSIZE - KEY_BIT);
@@ -68,6 +88,7 @@ GC *GC_create()
 
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
+	GC_init_obj_map(gc);
 	GC_init_freelist(gc);
 
 	return gc;
@@ -139,8 +160,8 @@ void GC_subdivide_block(GC *gc, void *block, int sz)
 	List *freelist = gc->freelist[sz];
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
 
-	unsigned int i = 0;
-	unsigned int object_sz = gc->size_map[sz];
+	uint32_t i = 0;
+	uint32_t object_sz = gc->size_map[sz];
 
 	for(i = 0; i < BLOCK_SZ / object_sz; i++) {
 		List_push(freelist, block + i * object_sz);
