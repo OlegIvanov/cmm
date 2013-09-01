@@ -70,6 +70,4 @@ BlockHeader *GC_create_block_header(GC *gc, int sz);
 
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr);
 
-inline void GC_test_ptr(GC *gc, uintptr_t ptr);
-
 #endif
