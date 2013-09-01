@@ -47,6 +47,15 @@ typedef struct GC {
 	List *freelist[SIZE_SZ];
 } GC;
 
+typedef struct ObjectDescriptor {
+	uintptr_t ref_count;
+	uintptr_t ref_map;	
+} ObjectDescriptor;
+
+typedef struct ObjectHeader {
+	ObjectDescriptor *obj_desc;
+} ObjectHeader;
+
 GC *GC_create();
 
 int GC_get_size(GC *gc, size_t size);

@@ -20,7 +20,7 @@ typedef struct C {
 
 char *test_cascade()
 {
-	C *c = NULL;
+	Ref(C, c);
 
 	New(C, c);
 	New(B, c->F_B);

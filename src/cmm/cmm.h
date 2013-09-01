@@ -16,6 +16,10 @@ __attribute__((constructor)) void cmm_init()
 
 void Object_new(GC *gc, size_t size, void **obj);
 
+#define Ref(Type, Name) Type * Name __attribute__((cleanup(Object_release))) = NULL
+
+void Object_release(void **obj);
+
 #endif
 
 /*
