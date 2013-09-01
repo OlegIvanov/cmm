@@ -1,3 +1,5 @@
+#define CMM
+
 #include "minunit.h"
 #include <cmm/cmm.h>
 
@@ -14,6 +16,7 @@ typedef struct C {
 	char Fchar;
 	B *F_B;
 } C;
+
 /*
 char *test_cascade()
 {
@@ -44,12 +47,14 @@ char *test_assign()
 	return NULL;
 }
 */
+
 char *all_tests() {
 	//mu_suite_start();
-/*
+	/*
 	mu_run_test(test_cascade);
 	mu_run_test(test_assign);
-*/
+	*/
+
 	return NULL;
 }
 

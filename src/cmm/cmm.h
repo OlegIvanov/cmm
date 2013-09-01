@@ -1,6 +1,27 @@
 #ifndef _cmm_h
 #define _cmm_h
 
+#include <cmm/gc.h>
+
+extern GC *__GC__;
+
+#ifdef CMM
+__attribute__ ((constructor)) void cmm_init()
+{ 
+	__GC__ = GC_create();
+}
+#endif
+
+#define New(Type, Ptr) Object_new(__GC__, sizeof(Type), &(Ptr))
+
+void Object_new(GC *gc, size_t size, void **obj);
+
+#endif
+
+/*
+#ifndef _cmm_h
+#define _cmm_h
+
 #include <stdint.h>
 #include <cmm/dbg.h>
 
@@ -104,3 +125,4 @@ static inline void Object_retain(void **lvalue, void **rvalue)
 }
 
 #endif
+*/
