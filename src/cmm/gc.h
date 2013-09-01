@@ -26,6 +26,7 @@
 
 typedef struct BlockHeader {
 	uint32_t size;
+	char *map;
 } BlockHeader;
 
 struct BottomIndex;

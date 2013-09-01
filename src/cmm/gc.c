@@ -192,6 +192,7 @@ BlockHeader *GC_create_block_header(GC *gc, int sz)
 	check_mem(header);
 
 	header->size = gc->size_map[sz];
+	header->map = gc->obj_map + sz * MAX_OFFSET;
 
 	return header;
 error:
