@@ -17,12 +17,8 @@ __attribute__((constructor)) void cmm_init()
 void Object_new(GC *gc, size_t size, void **obj);
 
 #define Ref(Type, Name) Type * Name __attribute__((cleanup(Object_release))) = NULL
-/*
-#define ONE 1U
-*/
-void Object_release(void **obj);
 
-void Object_release_childs(GC *gc, void **obj);
+void Object_release(void **obj);
 
 #endif
 

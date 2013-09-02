@@ -19,21 +19,21 @@ void Object_new(GC *gc, size_t size, void **obj)
 		GC_allocate_block(gc, 1, sz);
 	}
 
-	ObjectDescriptor *desc = calloc(1, sizeof(ObjectDescriptor));
-	check_mem(desc);
+	ObjectDescriptor *obj_desc = calloc(1, sizeof(ObjectDescriptor));
+	check_mem(obj_desc);
 
-	ObjectHeader *hdr = List_shift(freelist);
-	hdr->desc = desc;
+	ObjectHeader *obj_header = List_shift(freelist);
+	obj_header->desc = obj_desc;
 	
-	hdr->desc->ref_count++;
+	obj_header->desc->ref_count++;
 
-	*obj = hdr + 1;
+	*obj = obj_header + 1;
 
 error:
 	return;
 }
 
-void Object_release(void **obj)
+inline void Object_release(void **obj)
 {
 	void *obj_ptr = *obj;
 	if(obj_ptr == NULL) return;
@@ -52,7 +52,6 @@ void Object_release(void **obj)
 		obj_addr += WORD_SIZE_BYTES) {
 
 		void *ptr_candidate = *(void **)obj_addr;
-		
 		BlockHeader *block_header_candidate = GC_get_block_header(__GC__, (uintptr_t)ptr_candidate);
 
 		if(block_header_candidate) {
