@@ -35,25 +35,16 @@ error:
 
 void Object_release(void **obj)
 {
-	if(*obj == NULL) return;
-	
-	ObjectHeader *hdr = Object_get_header(*obj);
-	
-	hdr->desc->ref_count--;
-
-	if(hdr->desc->ref_count == 0) {
-		Object_release_childs(__GC__, obj);
-	}
-}
-
-void Object_release_childs(GC *gc, void **obj)
-{
 	void *obj_ptr = *obj;
+	if(obj_ptr == NULL) return;
 
-	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj_ptr);
+	ObjectHeader *obj_header = Object_get_header(obj_ptr);
+	obj_header->desc->ref_count--;
 
+	if(obj_header->desc->ref_count != 0) return;
+
+	BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)obj_ptr);
 	uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
-
 	void *obj_addr = NULL;
 
 	for(obj_addr = obj_ptr;
@@ -62,7 +53,7 @@ void Object_release_childs(GC *gc, void **obj)
 
 		void *ptr_candidate = *(void **)obj_addr;
 		
-		BlockHeader *block_header_candidate = GC_get_block_header(gc, (uintptr_t)ptr_candidate);
+		BlockHeader *block_header_candidate = GC_get_block_header(__GC__, (uintptr_t)ptr_candidate);
 
 		if(block_header_candidate) {
 			int16_t block_displ_words = GC_get_block_displ((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
