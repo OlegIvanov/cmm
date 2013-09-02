@@ -238,8 +238,9 @@ error:
 }
 
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
-{
-	if(ptr < gc->heap_range.low || ptr > gc->heap_range.high) return NULL;
+{	
+	if(ptr < (uintptr_t)gc->heap_range.low 
+	|| ptr > (uintptr_t)gc->heap_range.high) return NULL;
 
 	uintptr_t top = GC_get_top(ptr);
 	BottomIndex *bi = gc->top_index[top];
