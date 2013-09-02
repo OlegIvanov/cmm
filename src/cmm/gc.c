@@ -51,13 +51,13 @@ static int GC_init_obj_map(GC *gc)
 
 	int j = 0;
 	int i = 0;
-	uint32_t size_words;
+	uint32_t object_size_words = 0;
 
 	for(j = 0; j < SIZE_SZ; j++) {
-		size_words = gc->size_map[j] / WORDSIZEBYTE;
+		object_size_words = gc->size_map[j] / WORD_SIZE_BYTES;
 
 		for(i = 0; i < MAX_OFFSET; i++) {
-			*(gc->obj_map + j * MAX_OFFSET + i) = i % size_words;
+			gc->obj_map[j][i] = i % object_size_words;
 		}
 	}
 
@@ -197,7 +197,7 @@ BlockHeader *GC_create_block_header(GC *gc, int sz)
 	check_mem(header);
 
 	header->size = gc->size_map[sz];
-	header->map = gc->obj_map + sz * MAX_OFFSET;
+	header->map = gc->obj_map[sz];
 
 	return header;
 error:

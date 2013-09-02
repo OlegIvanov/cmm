@@ -59,7 +59,7 @@ void Object_release_childs(GC *gc, void **obj)
 		BlockHeader *blkhdrtemp = GC_get_block_header(gc, (uintptr_t)ptr);
 
 		if(blkhdrtemp != NULL) {
-			uintptr_t blkdispl = GC_get_block_displ((uintptr_t)ptr) / WORDSIZEBYTE;
+			uintptr_t blkdispl = GC_get_block_displ((uintptr_t)ptr) / WORD_SIZE_BYTES;
 				
 			//printf("\n%d\n", blkdispl);
 

@@ -23,13 +23,13 @@
 
 #define KEY_BIT					(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
-#define WORDSIZEBYTE			(__WORDSIZE / 8)
+#define WORD_SIZE_BYTES			(__WORDSIZE / 8)
 
-#define MAX_OFFSET				((BLOCK_SZ) / (WORDSIZEBYTE))
+#define MAX_OFFSET				((BLOCK_SZ) / (WORD_SIZE_BYTES))
 
 typedef struct BlockHeader {
 	uint32_t size;
-	char *map;
+	int16_t *map;
 } BlockHeader;
 
 struct BottomIndex;
@@ -44,7 +44,7 @@ typedef struct GC {
 	BottomIndex *top_index[TOP_SZ];
 	BottomIndex *all_nils;
 	uint32_t size_map[SIZE_SZ];
-	char obj_map[SIZE_SZ * MAX_OFFSET];
+	int16_t obj_map[SIZE_SZ][MAX_OFFSET];
 	List *freelist[SIZE_SZ];
 } GC;
 
