@@ -40,12 +40,18 @@ typedef struct BottomIndex {
 	struct BottomIndex *hash_link;
 } BottomIndex;
 
+typedef struct HeapRange {
+	void *low;
+	void *high;
+} HeapRange;
+
 typedef struct GC {
 	BottomIndex *top_index[TOP_SZ];
 	BottomIndex *all_nils;
 	uint32_t size_map[SIZE_SZ];
 	int16_t obj_map[SIZE_SZ][MAX_OFFSET];
 	List *freelist[SIZE_SZ];
+	HeapRange heap_range;
 } GC;
 
 typedef struct ObjectDescriptor {
