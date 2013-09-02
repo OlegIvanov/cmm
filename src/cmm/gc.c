@@ -89,8 +89,7 @@ static int GC_init_heap_range(GC *gc)
 		}
 	}
 
-	HeapRange range = gc->heap_range;
-	sscanf(file_line, "%p-%p", &range.low, &range.high);
+	sscanf(file_line, "%p-%p", &gc->heap_range.low, &gc->heap_range.high);
 
 	fclose(maps_file);
 
