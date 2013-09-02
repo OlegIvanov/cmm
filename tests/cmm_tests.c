@@ -53,15 +53,11 @@ char *test_gc_init_obj_map()
 
 char *test_cascade()
 {
-	Ref(B, b);
+	Ref(C, c);
 
-	New(B, b);
-	New(A, b->F_A);
-
-	printf("\nb:\t\t%p\n", b);
-	printf("\n&b->F_A:\t%p\n", &b->F_A);
-	printf("\nb->F_A:\t\t%p\n", b->F_A);
-	printf("----------------------------");
+	New(C, c);
+	New(B, c->F_B);
+	New(A, c->F_B->F_A);
 	
 	return NULL;
 }

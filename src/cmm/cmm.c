@@ -67,42 +67,9 @@ void Object_release_childs(GC *gc, void **obj)
 		if(block_header_candidate) {
 			int16_t block_displ_words = GC_get_block_displ((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
 
-			printf("\n%p\n", ptr_candidate);
-
-			printf("\n%d\n", block_displ_words);
-			
-			printf("\n%d\n", block_header_candidate->map[block_displ_words]);
-
-			/*
-			if(block_header_candidate->map[block_displ_words] == 0) {
-				printf("\n%p\n", ptr_candidate);
-
+			if(block_header_candidate->map[block_displ_words - 1] == 0) {
 				Object_release(&ptr_candidate);
 			}
-			*/
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
