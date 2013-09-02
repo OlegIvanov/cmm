@@ -11,17 +11,16 @@ void test_setup()
 }
 
 typedef struct A {
-	int F_int;
+	char F_char;
 } A;
 
 typedef struct B {
-	char Fchar;
+	char F_char;
 	A *F_A;
 } B;
 
 typedef struct C {
-	int F_int_arr[10];
-	char Fchar;
+	char F_char;
 	B *F_B;
 } C;
 
@@ -54,11 +53,15 @@ char *test_gc_init_obj_map()
 
 char *test_cascade()
 {
-	Ref(C, c);
+	Ref(B, b);
 
-	New(C, c);
-	New(B, c->F_B);
-	New(A, c->F_B->F_A);
+	New(B, b);
+	New(A, b->F_A);
+
+	printf("\nb:\t\t%p\n", b);
+	printf("\n&b->F_A:\t%p\n", &b->F_A);
+	printf("\nb->F_A:\t\t%p\n", b->F_A);
+	printf("----------------------------");
 	
 	return NULL;
 }
