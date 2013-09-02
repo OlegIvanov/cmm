@@ -48,13 +48,28 @@ void Object_release(void **obj)
 
 void Object_release_childs(GC *gc, void **obj)
 {
-	BlockHeader *blkhdr = GC_get_block_header(gc, (uintptr_t)*obj);
+	void *objptr = *obj;
+
+	BlockHeader *blkhdr = GC_get_block_header(gc, (uintptr_t)objptr);
 
 	uint32_t objsz = blkhdr->size - sizeof(ObjectHeader);
-	void *ptr_candidate = NULL;
-	BlockHeader *blkhdr_candidate = NULL;
+	void *ptr = NULL;
 
-	for(ptr_candidate = *obj; ptr_candidate < *obj + objsz; ptr_candidate++) {
-		blkhdr_candidate = GC_get_block_header(gc, (uintptr_t)ptr_candidate);
+	for(ptr = objptr; ptr < objptr + objsz; ptr++) {
+		BlockHeader *blkhdrtemp = GC_get_block_header(gc, (uintptr_t)ptr);
+
+		if(blkhdrtemp != NULL) {
+			uintptr_t blkdispl = GC_get_block_displ((uintptr_t)ptr) / WORDSIZEBYTE;
+				
+			//printf("\n%d\n", blkdispl);
+
+			if(blkhdrtemp->map[blkdispl] == 0) {
+				//printf("\n%d\n", blkdispl);
+
+				Object_release(&ptr);
+				
+				
+			}
+		}
 	}
 }

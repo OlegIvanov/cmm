@@ -219,3 +219,8 @@ inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
 	uintptr_t bottom = GC_get_bottom(ptr);
 	return bi->index[bottom];
 }
+
+inline uintptr_t GC_get_block_displ(uintptr_t ptr)
+{
+	return ptr & BLOCK_DISPL_MASK;
+}

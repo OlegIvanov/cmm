@@ -14,17 +14,18 @@
 
 #define	BLOCK_SZ				8192
 #define LOG_BLOCK_SZ			13
+#define BLOCK_DISPL_MASK		0x1FFFUL
 
 #define MIN_ALLOC_UNIT			16
 #define LOG_MIN_ALLOC_UNIT		4
 
 #define SIZE_SZ					((LOG_BLOCK_SZ) - (LOG_MIN_ALLOC_UNIT))
 
-#define KEY_BIT					((__WORDSIZE) - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
+#define KEY_BIT					(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
-#define MAX_OFFSET				((BLOCK_SZ) / (__WORDSIZE))
+#define WORDSIZEBYTE			(__WORDSIZE / 8)
 
-#define WORDSIZEBYTE			((__WORDSIZE) / 8)
+#define MAX_OFFSET				((BLOCK_SZ) / (WORDSIZEBYTE))
 
 typedef struct BlockHeader {
 	uint32_t size;
