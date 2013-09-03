@@ -43,7 +43,7 @@ inline void Object_release(void **obj)
 	obj_header->desc->ref_count--;
 
 	if(obj_header->desc->ref_count == 0) {
-		BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)obj_ptr);
+		BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)obj_header);
 		uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
 		void *obj_addr = NULL;
 
