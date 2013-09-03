@@ -75,13 +75,12 @@ static int GC_init_obj_map(GC *gc)
 	uint32_t j = 0;
 	uint32_t i = 0;
 	uint32_t object_size_words = 0;
-	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
 
 	for(j = 0; j < SIZE_SZ; j++) {
 		object_size_words = gc->size_map[j] / WORD_SIZE_BYTES;
 
-		for(i = 0; i < max_block_offset_words_sz; i++) {
-			*(gc->obj_map + j * max_block_offset_words_sz + i) = i % object_size_words;
+		for(i = 0; i < MAX_BLOCK_OFFSET_WORDS_SZ; i++) {
+			*(gc->obj_map + j * MAX_BLOCK_OFFSET_WORDS_SZ + i) = i % object_size_words;
 		}
 	}
 
@@ -133,9 +132,7 @@ GC *GC_create()
 	gc->all_nils = calloc(1, sizeof(BottomIndex));
 	check_mem(gc->all_nils);
 
-	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
-
-	gc->obj_map = calloc(1, SIZE_SZ * max_block_offset_words_sz * sizeof(int16_t));
+	gc->obj_map = calloc(1, SIZE_SZ * MAX_BLOCK_OFFSET_WORDS_SZ * sizeof(int16_t));
 	check_mem(gc->obj_map);
 
 	GC_init_top_index(gc);
@@ -261,10 +258,7 @@ BlockHeader *GC_create_block_header(GC *gc, int sz)
 	check_mem(header);
 
 	header->size = gc->size_map[sz];
-
-	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
-
-	header->map = gc->obj_map + sz * max_block_offset_words_sz;
+	header->map = gc->obj_map + sz * MAX_BLOCK_OFFSET_WORDS_SZ;
 
 	return header;
 error:

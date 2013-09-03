@@ -35,18 +35,16 @@ char *test_gc_init_size_map()
 }
 
 char *test_gc_init_obj_map()
-{
-	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
-	
-	mu_assert(max_block_offset_words_sz == 1024, "Invalid max_block_offset_words_sz value.");
+{	
+	mu_assert(MAX_BLOCK_OFFSET_WORDS_SZ == 1024, "Invalid max_block_offset_words_sz value.");
 
 	int i = 0;
 
 	for(i = 0; i < SIZE_SZ; i++) {
-		uint16_t offset = *(gc->obj_map + i * max_block_offset_words_sz);
+		uint16_t offset = *(gc->obj_map + i * MAX_BLOCK_OFFSET_WORDS_SZ);
 		mu_assert(offset == 0, "Invalid offset value.");
 
-		offset = *(gc->obj_map + i * max_block_offset_words_sz + max_block_offset_words_sz - 1);
+		offset = *(gc->obj_map + i * MAX_BLOCK_OFFSET_WORDS_SZ + MAX_BLOCK_OFFSET_WORDS_SZ - 1);
 		uint16_t obj_max_offset = gc->size_map[i] / WORD_SIZE_BYTES - 1;
 
 		mu_assert(offset == obj_max_offset, "Invalid offset value.");

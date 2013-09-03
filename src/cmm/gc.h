@@ -6,20 +6,22 @@
 #include <stdint.h>
 #include <math.h>
 
-#define LOG_TOP_SZ				11
-#define LOG_BOTTOM_SZ			10
-#define LOG_BLOCK_SZ			13
+#define LOG_TOP_SZ					11
+#define LOG_BOTTOM_SZ				10
+#define LOG_BLOCK_SZ				13
 
-#define BLOCK_DISPL_MASK		0x1FFFUL
+#define BLOCK_DISPL_MASK			0x1FFFUL
 
-#define MIN_ALLOC_UNIT			16
-#define LOG_MIN_ALLOC_UNIT		4
+#define MIN_ALLOC_UNIT				16
+#define LOG_MIN_ALLOC_UNIT			4
 
-#define SIZE_SZ					((LOG_BLOCK_SZ) - (LOG_MIN_ALLOC_UNIT))
+#define SIZE_SZ						((LOG_BLOCK_SZ) - (LOG_MIN_ALLOC_UNIT))
 
-#define KEY_BIT					(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
+#define KEY_BIT						(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
-#define WORD_SIZE_BYTES			(__WORDSIZE / 8)
+#define WORD_SIZE_BYTES				(__WORDSIZE / 8)
+
+#define MAX_BLOCK_OFFSET_WORDS_SZ	((GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES)
 
 typedef struct BlockHeader {
 	uint32_t size;
