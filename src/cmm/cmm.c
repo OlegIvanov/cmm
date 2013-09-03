@@ -8,23 +8,24 @@ static inline ObjectHeader *Object_get_header(void *obj)
 	return (ObjectHeader *)obj - 1;
 }
 
-void Object_new(GC *gc, size_t size, void **obj)
+void Object_new(GC *gc, size_t type_size, void **obj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	int sz = GC_get_size(gc, size + sizeof(ObjectHeader));
-	List *freelist = gc->freelist[sz];
+	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
+	List *freelist = gc->freelist[size_index];
 
 	if(List_count(freelist) == 0) {
-		GC_allocate_block(gc, 1, sz);
+		GC_allocate_block(gc, 1, size_index);
 	}
 
 	ObjectDescriptor *obj_desc = calloc(1, sizeof(ObjectDescriptor));
 	check_mem(obj_desc);
 
 	ObjectHeader *obj_header = List_shift(freelist);
+	memset(obj_header, 0, gc->size_map[size_index]);
 	obj_header->desc = obj_desc;
-	
+
 	obj_header->desc->ref_count++;
 
 	*obj = obj_header + 1;
@@ -67,7 +68,6 @@ void Object_release(void **obj)
 		List *freelist = __GC__->freelist[sz];
 		List_push(freelist, obj_header);
 		
-		memset(obj_header, 0, block_header->size);
 		free(obj_header->desc);
 	}
 }
