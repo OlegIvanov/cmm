@@ -118,10 +118,12 @@ GC *GC_create()
 	GC_init_freelist(gc);
 
 	return gc;
+
 error:
 	free(gc->top_index);
 	free(gc->all_nils);
 	free(gc);
+
 	return NULL;
 }
 
@@ -205,11 +207,18 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
 	check_mem(bi);
+
+	bi->index = calloc(GC_get_bottom(UINTPTR_MAX) + 1, sizeof(BlockHeader *));
+	check_mem(bi->index);
 	
 	bi->key = GC_get_key((uintptr_t)block);
 
 	return bi;
+
 error:
+	free(bi->index);
+	free(bi);
+
 	return NULL;
 }
 

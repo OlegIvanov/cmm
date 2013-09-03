@@ -7,8 +7,6 @@
 #include <math.h>
 
 #define LOG_TOP_SZ				11
-
-#define BOTTOM_SZ				1024
 #define LOG_BOTTOM_SZ			10
 
 #define	BLOCK_SZ				8192
@@ -34,7 +32,7 @@ typedef struct BlockHeader {
 struct BottomIndex;
 
 typedef struct BottomIndex {
-	BlockHeader *index[BOTTOM_SZ];
+	BlockHeader **index;
 	uintptr_t key;
 	struct BottomIndex *hash_link;
 } BottomIndex;
