@@ -1,5 +1,26 @@
 #include <cmm/gc.h>
 #include <cmm/dbg.h>
+#include <unistd.h>
+
+static inline uintptr_t GC_get_top(uintptr_t ptr)
+{
+	return (ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ);
+}
+
+static inline uintptr_t GC_get_key(uintptr_t ptr)
+{
+	return ptr >> (__WORDSIZE - KEY_BIT);
+}
+
+static inline uintptr_t GC_get_bottom(uintptr_t ptr)
+{
+	return (ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ);
+}
+
+inline uintptr_t GC_get_block(uintptr_t ptr)
+{
+	return ptr & BLOCK_DISPL_MASK;	
+}
 
 static int GC_init_top_index(GC *gc)
 {
@@ -51,15 +72,16 @@ static int GC_init_obj_map(GC *gc)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	int j = 0;
-	int i = 0;
+	uint32_t j = 0;
+	uint32_t i = 0;
 	uint32_t object_size_words = 0;
+	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
 
 	for(j = 0; j < SIZE_SZ; j++) {
 		object_size_words = gc->size_map[j] / WORD_SIZE_BYTES;
 
-		for(i = 0; i < MAX_OFFSET; i++) {
-			gc->obj_map[j][i] = i % object_size_words;
+		for(i = 0; i < max_block_offset_words_sz; i++) {
+			*(gc->obj_map + j * max_block_offset_words_sz + i) = i % object_size_words;
 		}
 	}
 
@@ -111,6 +133,11 @@ GC *GC_create()
 	gc->all_nils = calloc(1, sizeof(BottomIndex));
 	check_mem(gc->all_nils);
 
+	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
+
+	gc->obj_map = calloc(1, SIZE_SZ * max_block_offset_words_sz * sizeof(int16_t));
+	check_mem(gc->obj_map);
+
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
 	GC_init_obj_map(gc);
@@ -120,6 +147,7 @@ GC *GC_create()
 	return gc;
 
 error:
+	free(gc->obj_map);
 	free(gc->top_index);
 	free(gc->all_nils);
 	free(gc);
@@ -147,7 +175,9 @@ void GC_allocate_block(GC *gc, int n, int sz)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	void *block = NULL;
-	int rc = posix_memalign(&block, BLOCK_SZ, n * BLOCK_SZ);
+	uintptr_t block_sz = GC_get_block(UINTPTR_MAX) + 1;
+
+	int rc = posix_memalign(&block, block_sz, n * block_sz);
 	check(rc == 0, "Allocating block error occured.");
 
 	GC_subdivide_block(gc, block, sz);
@@ -190,10 +220,11 @@ void GC_subdivide_block(GC *gc, void *block, int sz)
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
 
 	uint32_t i = 0;
-	uint32_t object_sz = gc->size_map[sz];
+	uint32_t object_size_bytes = gc->size_map[sz];
+	uintptr_t block_sz = GC_get_block(UINTPTR_MAX) + 1;
 
-	for(i = 0; i < BLOCK_SZ / object_sz; i++) {
-		List_push(freelist, block + i * object_sz);
+	for(i = 0; i < block_sz / object_size_bytes; i++) {
+		List_push(freelist, block + i * object_size_bytes);
 	}
 
 error:
@@ -230,7 +261,10 @@ BlockHeader *GC_create_block_header(GC *gc, int sz)
 	check_mem(header);
 
 	header->size = gc->size_map[sz];
-	header->map = gc->obj_map[sz];
+
+	uint32_t max_block_offset_words_sz = (GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES;
+
+	header->map = gc->obj_map + sz * max_block_offset_words_sz;
 
 	return header;
 error:
@@ -254,9 +288,4 @@ inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
 
 	uintptr_t bottom = GC_get_bottom(ptr);
 	return bi->index[bottom];
-}
-
-inline uintptr_t GC_get_block_displ(uintptr_t ptr)
-{
-	return ptr & BLOCK_DISPL_MASK;
 }

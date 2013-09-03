@@ -33,7 +33,7 @@ error:
 	return;
 }
 
-inline void Object_release(void **obj)
+void Object_release(void **obj)
 {
 	void *obj_ptr = *obj;
 
@@ -55,7 +55,7 @@ inline void Object_release(void **obj)
 			BlockHeader *block_header_candidate = GC_get_block_header(__GC__, (uintptr_t)ptr_candidate);
 
 			if(block_header_candidate) {
-				int16_t block_displ_words = GC_get_block_displ((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
+				int16_t block_displ_words = GC_get_block((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
 
 				if(block_header_candidate->map[block_displ_words - 1] == 0) {
 					Object_release(&ptr_candidate);
