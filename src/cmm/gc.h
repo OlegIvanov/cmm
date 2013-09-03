@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <math.h>
 
-#define TOP_SZ					2048
 #define LOG_TOP_SZ				11
 
 #define BOTTOM_SZ				1024
@@ -46,7 +45,7 @@ typedef struct HeapRange {
 } HeapRange;
 
 typedef struct GC {
-	BottomIndex *top_index[TOP_SZ];
+	BottomIndex **top_index;
 	BottomIndex *all_nils;
 	uint32_t size_map[SIZE_SZ];
 	int16_t obj_map[SIZE_SZ][MAX_OFFSET];
@@ -76,5 +75,20 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block);
 BlockHeader *GC_create_block_header(GC *gc, int sz);
 
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr);
+
+static inline uintptr_t GC_get_top(uintptr_t ptr)
+{
+	return (ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ);
+}
+
+static inline uintptr_t GC_get_key(uintptr_t ptr)
+{
+	return ptr >> (__WORDSIZE - KEY_BIT);
+}
+
+static inline uintptr_t GC_get_bottom(uintptr_t ptr)
+{
+	return (ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ);
+}
 
 #endif
