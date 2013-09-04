@@ -3,9 +3,11 @@
 
 #include <cmm/gc.h>
 
-#define New(Type, Ptr) Object_new(__GC__, sizeof(Type), (void **)&(Ptr))
+#define New(Type, Ptr)			Object_new(__GC__, sizeof(Type), (void **)&(Ptr))
 
-#define Cpy(LObj, RObj) Object_retain((void **)&(LObj),(void **)&(RObj))
+#define Copy(LObj, RObj)		Object_retain((void **)&(LObj),(void **)&(RObj))
+
+#define Release(Obj)			Object_release((void **)&(Obj))
 
 void Object_new(GC *gc, size_t size, void **obj);
 

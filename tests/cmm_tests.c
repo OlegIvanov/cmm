@@ -61,6 +61,8 @@ char *test_cascade()
 	New(B, c->F_B);
 	New(A, c->F_B->F_A);
 	
+	Release(c);
+
 	return NULL;
 }
 
