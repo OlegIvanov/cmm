@@ -87,29 +87,22 @@ void Object_release(void *obj)
 	}
 }
 
-int Object_retain(void **lobj, void **robj)
+void Object_retain(void *lobj, void *robj)
 {
-	void *robj_ptr = *robj;
+	if(robj) check(Object_validate_ptr(robj), "Invalid 'robj' pointer.");
 
-	if(robj_ptr) {
-		check(Object_validate_ptr(robj_ptr), "Invalid 'robj' pointer.");
-	}
-
-	void *lobj_ptr = *lobj;
-
-	if(lobj_ptr) {
-		if(Object_validate_ptr(robj_ptr)) {
-			ObjectHeader *lobj_header = Object_get_header(lobj_ptr);
+	if(lobj) {
+		if(Object_validate_ptr(lobj)) {
+			ObjectHeader *lobj_header = Object_get_header(lobj);
 			lobj_header->desc->ref_count--;
 		}
 	}
 
-	if(robj_ptr) {
-		ObjectHeader *robj_header = Object_get_header(robj_ptr);
+	if(robj) {
+		ObjectHeader *robj_header = Object_get_header(robj);
 		robj_header->desc->ref_count++;
 	}
 
-	return 0;
 error:
-	return -1;
+	return;
 }
