@@ -94,15 +94,19 @@ void Object_release(void **obj)
 
 int Object_retain(void **lobj, void **robj)
 {
-	void *lobj_ptr = *lobj;
-	check(Object_validate_ptr(lobj_ptr), "Invalid left object pointer.");
-
 	void *robj_ptr = *robj;
-	check(Object_validate_ptr(robj_ptr), "Invalid right object pointer.");
+
+	if(robj_ptr) {
+		check(Object_validate_ptr(robj_ptr), "Invalid 'robj' pointer.");
+	}
+
+	void *lobj_ptr = *lobj;
 
 	if(lobj_ptr) {
-		ObjectHeader *lobj_header = Object_get_header(lobj_ptr);
-		lobj_header->desc->ref_count--;
+		if(Object_validate_ptr(robj_ptr)) {
+			ObjectHeader *lobj_header = Object_get_header(lobj_ptr);
+			lobj_header->desc->ref_count--;
+		}
 	}
 
 	if(robj_ptr) {
