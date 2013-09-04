@@ -135,6 +135,8 @@ GC *GC_create()
 	gc->obj_map = calloc(1, SIZE_SZ * MAX_BLOCK_OFFSET_WORDS_SZ * sizeof(int16_t));
 	check_mem(gc->obj_map);
 
+	gc->arp_stack = List_create();
+
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
 	GC_init_obj_map(gc);

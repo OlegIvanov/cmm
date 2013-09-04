@@ -47,6 +47,7 @@ typedef struct GC {
 	int16_t *obj_map;
 	List *freelist[SIZE_SZ];
 	HeapRange heap_range;
+	List *arp_stack;
 } GC;
 
 typedef struct ObjectDescriptor {
