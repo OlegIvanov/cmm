@@ -1,7 +1,7 @@
 #include <cmm/arp.h>
 #include <cmm/gc.h>
 
-ARPool *GC_create_arp(GC *gc)
+ARPool *ARPool_create(GC *gc)
 {
 	ARPool *arp = calloc(1, sizeof(ARPool));
 	check_mem(arp);
@@ -13,6 +13,6 @@ error:
 	return NULL;	
 }
 
-void GC_release_arp(GC *gc, ARPool *arp)
+void ARPool_release(GC *gc, ARPool *arp)
 {	
 }

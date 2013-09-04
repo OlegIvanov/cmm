@@ -8,12 +8,12 @@ typedef struct ARPool {
 	List *pool;	
 } ARPool;
 
-#define ARPC { ARPool *__ARP__ = GC_create_arp(__GC__);
+#define ARPC { ARPool *__ARP__ = ARPool_create(__GC__);
 
-#define ARPR GC_release_arp(__GC__, __ARP__); }
+#define ARPR ARPool_release(__GC__, __ARP__); }
 
-ARPool *GC_create_arp(GC *gc);
+ARPool *ARPool_create(GC *gc);
 
-void GC_release_arp(GC *gc, ARPool *arp);
+void ARPool_release(GC *gc, ARPool *arp);
 
 #endif
