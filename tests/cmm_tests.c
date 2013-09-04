@@ -55,7 +55,7 @@ char *test_gc_init_obj_map()
 
 char *test_cascade()
 {
-	Ref(C, c);
+	C *c = NULL;
 
 	New(C, c);
 	New(B, c->F_B);
