@@ -66,10 +66,7 @@ void Object_release(void *obj)
 		uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
 		void *obj_addr = NULL;
 
-		for(obj_addr = obj_ptr;
-			obj_addr < obj_ptr + object_size_bytes;
-			obj_addr += WORD_SIZE_BYTES) {
-
+		for(obj_addr = obj; obj_addr < obj + object_size_bytes; obj_addr += WORD_SIZE_BYTES) {
 			void *ptr_candidate = *(void **)obj_addr;
 			BlockHeader *block_header_candidate = GC_get_block_header(__GC__, (uintptr_t)ptr_candidate);
 
@@ -77,7 +74,7 @@ void Object_release(void *obj)
 				int16_t block_displ_words = GC_get_block((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
 
 				if(block_header_candidate->map[block_displ_words - 1] == 0) {
-					Object_release(&ptr_candidate);
+					Object_release(ptr_candidate);
 				}
 			}
 		}

@@ -16,7 +16,7 @@ typedef struct ARPool {
 
 ARPool *ARPool_create(GC *gc);
 
-void ARPool_release(GC *gc/*, ARPool *arp*/);
+void ARPool_release(GC *gc);
 
 void ARPool_autorelease(GC *gc, void *obj);
 

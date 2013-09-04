@@ -23,7 +23,7 @@ void ARPool_destroy(ARPool *arp)
 {
 }
 
-void ARPool_release(GC *gc/*, ARPool *arp*/)
+void ARPool_release(GC *gc)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
@@ -31,7 +31,7 @@ void ARPool_release(GC *gc/*, ARPool *arp*/)
 	check(arp, "There is no pool.");
 
 	LIST_FOREACH(arp->pool, first, next, cur) {
-		Object_release((void **)&cur->value);
+		Release(cur->value);
 	}
 
 error:
