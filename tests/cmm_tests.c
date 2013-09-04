@@ -2,6 +2,7 @@
 
 #include "minunit.h"
 #include <cmm/cmm.h>
+#include <cmm/arp.h>
 
 GC *gc;
 
@@ -66,6 +67,18 @@ char *test_cascade()
 	return NULL;
 }
 
+char *test_arp()
+{
+ARPC
+	B *b = NULL;
+
+	New(B, b);
+	New(A, b->F_A);
+
+	return NULL;
+ARPR
+}
+
 char *all_tests() {
 	mu_suite_start();
 
@@ -74,6 +87,7 @@ char *all_tests() {
 	mu_run_test(test_gc_init_size_map);
 	mu_run_test(test_gc_init_obj_map);
 	mu_run_test(test_cascade);
+	mu_run_test(test_arp);
 
 	return NULL;
 }
