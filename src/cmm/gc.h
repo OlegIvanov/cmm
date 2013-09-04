@@ -59,20 +59,15 @@ typedef struct ObjectHeader {
 	ObjectDescriptor *desc;
 } ObjectHeader;
 
+extern GC *__GC__;
+
 inline uintptr_t GC_get_block(uintptr_t ptr);
-
 GC *GC_create();
-
 int GC_get_size(GC *gc, size_t size);
-
 void GC_allocate_block(GC *gc, int n, int sz);
-
 void GC_subdivide_block(GC *gc, void *block, int sz);
-
 BottomIndex *GC_create_bottom_index(GC *gc, void *block);
-
 BlockHeader *GC_create_block_header(GC *gc, int sz);
-
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr);
 
 #endif

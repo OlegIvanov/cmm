@@ -6,21 +6,15 @@ ARPool *ARPool_create(GC *gc)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	ARPool *arp = calloc(1, sizeof(ARPool));
-	check_mem(arp);
+	ARPool *arp = NULL;
+	New(ARPool, arp);
 
 	arp->pool = List_create();
-
 	List_push(gc->arp_stack, arp);
 
 	return arp;
 error:
-	free(arp);
 	return NULL;
-}
-
-void ARPool_destroy(ARPool *arp)
-{
 }
 
 void ARPool_release(GC *gc)
@@ -33,6 +27,9 @@ void ARPool_release(GC *gc)
 	LIST_FOREACH(arp->pool, first, next, cur) {
 		Release(cur->value);
 	}
+
+	List_destroy(arp->pool);
+	Release(arp);
 
 error:
 	return;

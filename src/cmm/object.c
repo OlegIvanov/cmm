@@ -1,8 +1,6 @@
 #include <cmm/object.h>
 #include <cmm/gc.h>
 
-GC *__GC__;
-
 static inline ObjectHeader *Object_get_header(void *obj)
 {
 	return (ObjectHeader *)obj - 1;

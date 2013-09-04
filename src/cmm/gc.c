@@ -2,6 +2,8 @@
 #include <cmm/dbg.h>
 #include <unistd.h>
 
+GC *__GC__;
+
 static inline uintptr_t GC_get_top(uintptr_t ptr)
 {
 	return (ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ);

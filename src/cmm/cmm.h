@@ -3,8 +3,6 @@
 
 #include <cmm/object.h>
 
-extern GC *__GC__;
-
 #ifdef CMM
 __attribute__((constructor)) void cmm_init()
 { 
