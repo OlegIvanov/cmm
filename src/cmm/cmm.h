@@ -12,15 +12,23 @@ __attribute__((constructor)) void cmm_init()
 }
 #endif
 
+#define Ref(Type, Name) Type * Name = NULL
+
 #define New(Type, Ptr) Object_new(__GC__, sizeof(Type), (void **)&(Ptr))
+
+#define Cpy(LObj, RObj) Object_retain((void **)&(LObj),(void **)&(RObj))
 
 void Object_new(GC *gc, size_t size, void **obj);
 
-#define Ref(Type, Name) Type * Name __attribute__((cleanup(Object_release))) = NULL
-
 void Object_release(void **obj);
 
+int Object_retain(void **lobj, void **robj);
+
 #endif
+
+/*
+#define Ref(Type, Name) Type * Name __attribute__((cleanup(Object_release))) = NULL
+*/
 
 /*
 #ifndef _cmm_h

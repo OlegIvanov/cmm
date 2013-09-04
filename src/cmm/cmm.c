@@ -8,9 +8,29 @@ static inline ObjectHeader *Object_get_header(void *obj)
 	return (ObjectHeader *)obj - 1;
 }
 
+inline int Object_validate_ptr(void *ptr)
+{
+	BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)ptr);
+
+	if(block_header) {
+		int16_t block_displ_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
+		
+		if(block_header->map[block_displ_words - 1] == 0) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 void Object_new(GC *gc, size_t type_size, void **obj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
+
+	if(Object_validate_ptr(*obj)) {
+		ObjectHeader *obj_header = Object_get_header(*obj);
+		obj_header->desc->ref_count--;
+	}
 
 	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
 	List *freelist = gc->freelist[size_index];
@@ -70,4 +90,27 @@ void Object_release(void **obj)
 		
 		free(obj_header->desc);
 	}
+}
+
+int Object_retain(void **lobj, void **robj)
+{
+	void *lobj_ptr = *lobj;
+	check(Object_validate_ptr(lobj_ptr), "Invalid left object pointer.");
+
+	void *robj_ptr = *robj;
+	check(Object_validate_ptr(robj_ptr), "Invalid right object pointer.");
+
+	if(lobj_ptr) {
+		ObjectHeader *lobj_header = Object_get_header(lobj_ptr);
+		lobj_header->desc->ref_count--;
+	}
+
+	if(robj_ptr) {
+		ObjectHeader *robj_header = Object_get_header(robj_ptr);
+		robj_header->desc->ref_count++;
+	}
+
+	return 0;
+error:
+	return -1;
 }
