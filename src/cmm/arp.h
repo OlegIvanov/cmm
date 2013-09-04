@@ -1,6 +1,9 @@
 #ifndef _arp_h
 #define _arp_h
 
+#include <cmm/list.h>
+#include <cmm/gc.h>
+
 typedef struct ARPool {
 	List *pool;	
 } ARPool;
