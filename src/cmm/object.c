@@ -54,13 +54,11 @@ error:
 	return;
 }
 
-void Object_release(void **obj)
+void Object_release(void *obj)
 {
-	void *obj_ptr = *obj;
+	if(obj == NULL) return;
 
-	if(obj_ptr == NULL) return;
-
-	ObjectHeader *obj_header = Object_get_header(obj_ptr);
+	ObjectHeader *obj_header = Object_get_header(obj);
 	obj_header->desc->ref_count--;
 
 	if(obj_header->desc->ref_count == 0) {
