@@ -4,7 +4,6 @@
 #include <cmm/list.h>
 #include <cmm/dbg.h>
 #include <stdint.h>
-#include <math.h>
 
 #define LOG_TOP_SZ					11
 #define LOG_BOTTOM_SZ				10
