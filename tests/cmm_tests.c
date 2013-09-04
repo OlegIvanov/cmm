@@ -73,10 +73,11 @@ ARPC
 	B *b = NULL;
 
 	New(B, b);
-	New(A, b->F_A);
+	Autorelease(b);
 
-	return NULL;
+	New(A, b->F_A);
 ARPR
+	return NULL;
 }
 
 char *all_tests() {
