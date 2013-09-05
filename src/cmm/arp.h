@@ -9,15 +9,11 @@ typedef struct ARPool {
 } ARPool;
 
 #define	ARPC				{ ARPool *__ARP__ = ARPool_create(__GC__);
-
 #define ARPR				ARPool_release(__GC__); }
-
 #define Autorelease(Obj)	ARPool_autorelease(__GC__, Obj)
 
 ARPool *ARPool_create(GC *gc);
-
 void ARPool_release(GC *gc);
-
 void ARPool_autorelease(GC *gc, void *obj);
 
 #endif
