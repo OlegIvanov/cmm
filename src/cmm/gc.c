@@ -278,13 +278,15 @@ inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
 	uintptr_t top = GC_get_top(ptr);
 	BottomIndex *bi = gc->top_index[top];
 
-	if(bi == gc->all_nils) return NULL;
-
 	uintptr_t key = GC_get_key(ptr);
-	while(bi->key != key) bi = bi->hash_link;
-	
-	if(bi == NULL) return NULL;
+
+	while(bi->key != key) {
+		bi = bi->hash_link;
+
+		if(bi == NULL) return NULL;
+	}
 
 	uintptr_t bottom = GC_get_bottom(ptr);
+
 	return bi->index[bottom];
 }
