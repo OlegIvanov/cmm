@@ -80,6 +80,21 @@ ARPR
 	return NULL;
 }
 
+char *test_copy()
+{
+	B *b = NULL;
+
+	New(B, b);
+	New(A, b->F_A);
+
+	A *a = NULL;	
+
+	Copy(a, b->F_A);
+	Copy(a, NULL);
+
+	return NULL;
+}
+
 char *all_tests() {
 	mu_suite_start();
 
@@ -89,6 +104,7 @@ char *all_tests() {
 	mu_run_test(test_gc_init_obj_map);
 	mu_run_test(test_cascade);
 	mu_run_test(test_arp);
+	mu_run_test(test_copy);
 
 	return NULL;
 }
