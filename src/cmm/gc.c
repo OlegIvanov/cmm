@@ -45,10 +45,8 @@ static int GC_init_size_map(GC *gc)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	int i = 0;
-	gc->size_map[0] = MIN_ALLOC_UNIT;
-
-	for(i = 1; i < SIZE_SZ; i++) {
-		gc->size_map[i] = gc->size_map[i - 1] * 2;
+	for(i = 0; i < SIZE_SZ; i++) {
+		gc->size_map[i] = 1U << (LOG_MIN_OBJECT_SZ + i);
 	}
 
 	return 0;
