@@ -51,6 +51,25 @@ error:
 	return;
 }
 
+static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
+{
+	uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
+	void **ptr = NULL;
+
+	for(ptr = (void **)obj; 
+		ptr < (void **)obj + object_size_bytes; 
+		ptr++) {
+		
+		BlockHeader *blkhdr = GC_get_block_header(gc, (uintptr_t)ptr);
+		if(blkhdr) {
+			int16_t block_displ_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
+			if(blkhdr->map[block_displ_words - 1] == 0) {
+				Object_release(gc, ptr);
+			}
+		}
+	}
+}
+
 void Object_release(GC *gc, void *obj)
 {
 	if(obj == NULL) return;
@@ -60,23 +79,8 @@ void Object_release(GC *gc, void *obj)
 
 	if(obj_header->ref_count == 0) {
 		BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj_header);
-		uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
-		void *obj_addr = NULL;
-
-		for(obj_addr = obj; obj_addr < obj + object_size_bytes; obj_addr += WORD_SIZE_BYTES) {
-			void *ptr_candidate = *(void **)obj_addr;
-			BlockHeader *block_header_candidate = GC_get_block_header(gc, (uintptr_t)ptr_candidate);
-
-			if(block_header_candidate) {
-				int16_t block_displ_words = GC_get_block((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
-
-				if(block_header_candidate->map[block_displ_words - 1] == 0) {
-					Object_release(gc, ptr_candidate);
-				}
-			}
-		}
-
-		List_push(gc->freelist[block_header->size_index], obj_header);
+		Object_release_childs(gc, obj, block_header);
+		List_push(gc->freelist[block_header->size_index], obj_header);	
 	}
 }
 
