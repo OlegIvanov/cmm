@@ -12,9 +12,9 @@ static inline void Object_retain(void *obj)
 	obj_header->ref_count++;
 }
 
-inline int Object_validate_ptr(void *ptr)
+inline int Object_validate_ptr(GC *gc, void *ptr)
 {
-	BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)ptr);
+	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
 
 	if(block_header) {
 		int16_t block_displ_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
@@ -31,8 +31,8 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	if(Object_validate_ptr(*obj)) {
-		Object_release(*obj);
+	if(Object_validate_ptr(gc, *obj)) {
+		Object_release(gc, *obj);
 	}
 
 	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
@@ -51,7 +51,7 @@ error:
 	return;
 }
 
-void Object_release(void *obj)
+void Object_release(GC *gc, void *obj)
 {
 	if(obj == NULL) return;
 
@@ -59,37 +59,41 @@ void Object_release(void *obj)
 	obj_header->ref_count--;
 
 	if(obj_header->ref_count == 0) {
-		BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)obj_header);
+		BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj_header);
 		uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
 		void *obj_addr = NULL;
 
 		for(obj_addr = obj; obj_addr < obj + object_size_bytes; obj_addr += WORD_SIZE_BYTES) {
 			void *ptr_candidate = *(void **)obj_addr;
-			BlockHeader *block_header_candidate = GC_get_block_header(__GC__, (uintptr_t)ptr_candidate);
+			BlockHeader *block_header_candidate = GC_get_block_header(gc, (uintptr_t)ptr_candidate);
 
 			if(block_header_candidate) {
 				int16_t block_displ_words = GC_get_block((uintptr_t)ptr_candidate) / WORD_SIZE_BYTES;
 
 				if(block_header_candidate->map[block_displ_words - 1] == 0) {
-					Object_release(ptr_candidate);
+					Object_release(gc, ptr_candidate);
 				}
 			}
 		}
 
-		int sz = GC_get_size(__GC__, block_header->size);
+		int sz = GC_get_size(gc, block_header->size);
 		List *freelist = __GC__->freelist[sz];
 		List_push(freelist, obj_header);
 	}
 }
 
-void Object_copy(void **lobj, void *robj)
+void Object_copy(GC *gc, void **lobj, void *robj)
 {
+	check(gc, "Argument 'gc' can't be NULL.");
+
 	if(robj) {
-		check(Object_validate_ptr(robj), "Invalid 'robj' pointer.");
+		check(Object_validate_ptr(gc, robj), "Invalid 'robj' pointer.");
 	}
-	if(Object_validate_ptr(*lobj)) {
-		Object_release(*lobj);
+
+	if(Object_validate_ptr(gc, *lobj)) {
+		Object_release(gc, *lobj);
 	}
+
 	if(robj) {
 		Object_retain(robj);
 	}
