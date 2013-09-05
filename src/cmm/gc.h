@@ -17,13 +17,13 @@
 	#define LOG_MIN_OBJECT_SZ		3
 #endif
 
-#define WORD_SIZE_BYTES				(__WORDSIZE / 8)
-
 #define SIZE_SZ						((LOG_BLOCK_SZ) - (LOG_MIN_OBJECT_SZ))
 
 #define KEY_BIT						(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
-#define MAX_BLOCK_OFFSET_WORDS_SZ	((GC_get_block(UINTPTR_MAX) + 1) / WORD_SIZE_BYTES)
+#define WORD_SIZE_BYTES				(__WORDSIZE / 8)
+
+#define MAX_BLOCK_OFFSET_WORDS_SZ	((1UL << LOG_BLOCK_SZ) / WORD_SIZE_BYTES)
 
 typedef struct BlockHeader {
 	uint32_t size;
