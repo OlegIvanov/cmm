@@ -76,9 +76,7 @@ void Object_release(GC *gc, void *obj)
 			}
 		}
 
-		int sz = GC_get_size(gc, block_header->size);
-		List *freelist = __GC__->freelist[sz];
-		List_push(freelist, obj_header);
+		List_push(gc->freelist[block_header->size_index], obj_header);
 	}
 }
 

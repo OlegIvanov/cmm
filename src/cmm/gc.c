@@ -171,17 +171,17 @@ error:
 	return -1;
 }
 
-void GC_allocate_block(GC *gc, int n, int sz)
+void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	void *block = NULL;
-	uintptr_t block_sz = GC_get_block(UINTPTR_MAX) + 1;
+	uintptr_t block_size_bytes = GC_get_block(UINTPTR_MAX) + 1;
 
-	int rc = posix_memalign(&block, block_sz, n * block_sz);
+	int rc = posix_memalign(&block, block_size_bytes, n * block_size_bytes);
 	check(rc == 0, "Allocating block error occured.");
 
-	GC_subdivide_block(gc, block, sz);
+	GC_subdivide_block(gc, block, size_index);
 
 	BottomIndex *bi = NULL;
 	uintptr_t top = GC_get_top((uintptr_t)block);
@@ -203,7 +203,7 @@ void GC_allocate_block(GC *gc, int n, int sz)
 		}
 	}
 
-	BlockHeader *header = GC_create_block_header(gc, sz);
+	BlockHeader *header = GC_create_block_header(gc, size_index);
 
 	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
 	bi->index[bottom] = header;
@@ -212,19 +212,19 @@ error:
 	return;
 }
 
-void GC_subdivide_block(GC *gc, void *block, int sz)
+void GC_subdivide_block(GC *gc, void *block, uint16_t size_index)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 	check(block, "Argument 'block' can't be NULL.");
 
-	List *freelist = gc->freelist[sz];
+	List *freelist = gc->freelist[size_index];
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
 
 	uint32_t i = 0;
-	uint32_t object_size_bytes = gc->size_map[sz];
-	uintptr_t block_sz = GC_get_block(UINTPTR_MAX) + 1;
+	uint32_t object_size_bytes = gc->size_map[size_index];
+	uintptr_t block_size_bytes = GC_get_block(UINTPTR_MAX) + 1;
 
-	for(i = 0; i < block_sz / object_size_bytes; i++) {
+	for(i = 0; i < block_size_bytes / object_size_bytes; i++) {
 		List_push(freelist, block + i * object_size_bytes);
 	}
 
@@ -254,15 +254,17 @@ error:
 	return NULL;
 }
 
-BlockHeader *GC_create_block_header(GC *gc, int sz)
+BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	BlockHeader *header = calloc(1, sizeof(BlockHeader));
 	check_mem(header);
 
-	header->size = gc->size_map[sz];
-	header->map = gc->obj_map + sz * MAX_BLOCK_OFFSET_WORDS_SZ;
+	header->size = gc->size_map[size_index];
+	header->size_index = size_index;
+
+	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
 	return header;
 error:
