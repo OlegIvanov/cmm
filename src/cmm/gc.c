@@ -29,9 +29,7 @@ static int GC_init_top_index(GC *gc)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	uintptr_t i = 0;
-	uintptr_t top_sz = GC_get_top(UINTPTR_MAX) + 1;
-
-	for(i = 0; i < top_sz; i++) {
+	for(i = 0; i < TOP_SZ; i++) {
 		gc->top_index[i] = gc->all_nils;
 	}
 
@@ -131,7 +129,7 @@ GC *GC_create()
 	GC *gc = calloc(1, sizeof(GC));
 	check_mem(gc);
 
-	gc->top_index = calloc(GC_get_top(UINTPTR_MAX) + 1, sizeof(BottomIndex *));
+	gc->top_index = calloc(TOP_SZ, sizeof(BottomIndex *));
 	check_mem(gc->top_index);
 
 	gc->all_nils = calloc(1, sizeof(BottomIndex));
