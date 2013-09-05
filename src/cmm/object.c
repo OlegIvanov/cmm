@@ -6,6 +6,12 @@ static inline ObjectHeader *Object_get_header(void *obj)
 	return (ObjectHeader *)obj - 1;
 }
 
+static inline void Object_retain(void *obj)
+{
+	ObjectHeader *obj_header = Object_get_header(obj);
+	obj_header->desc->ref_count++;
+}
+
 inline int Object_validate_ptr(void *ptr)
 {
 	BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)ptr);
@@ -85,24 +91,19 @@ void Object_release(void *obj)
 	}
 }
 
-void Object_retain(void **lobj, void *robj)
+void Object_copy(void **lobj, void *robj)
 {
-	if(robj) check(Object_validate_ptr(robj), "Invalid 'robj' pointer.");
-
-	if(*lobj) {
-		if(Object_validate_ptr(*lobj)) {
-			ObjectHeader *lobj_header = Object_get_header(*lobj);
-			lobj_header->desc->ref_count--;
-		}
-	}
-
 	if(robj) {
-		ObjectHeader *robj_header = Object_get_header(robj);
-		robj_header->desc->ref_count++;
+		check(Object_validate_ptr(robj), "Invalid 'robj' pointer.");
+	}
+	if(Object_validate_ptr(*lobj)) {
+		Object_release(*lobj);
+	}
+	if(robj) {
+		Object_retain(robj);
 	}
 
 	*lobj = robj;
-
 error:
 	return;
 }
