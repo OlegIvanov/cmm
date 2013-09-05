@@ -15,10 +15,8 @@ static inline void Object_retain(void *obj)
 inline int Object_validate_ptr(GC *gc, void *ptr)
 {
 	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
-
 	if(block_header) {
 		int16_t block_displ_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
-		
 		if(block_header->map[block_displ_words - 1] == 0) {
 			return 1;
 		}
@@ -59,13 +57,9 @@ static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
 	for(ptr = (void **)obj; 
 		ptr < (void **)obj + object_size_bytes; 
 		ptr++) {
-		
-		BlockHeader *blkhdr = GC_get_block_header(gc, (uintptr_t)ptr);
-		if(blkhdr) {
-			int16_t block_displ_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
-			if(blkhdr->map[block_displ_words - 1] == 0) {
-				Object_release(gc, ptr);
-			}
+
+		if(Object_validate_ptr(gc, ptr)) {
+			Object_release(gc, ptr);
 		}
 	}
 }
@@ -91,15 +85,12 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 	if(robj) {
 		check(Object_validate_ptr(gc, robj), "Invalid 'robj' pointer.");
 	}
-
 	if(Object_validate_ptr(gc, *lobj)) {
 		Object_release(gc, *lobj);
 	}
-
 	if(robj) {
 		Object_retain(robj);
 	}
-
 	*lobj = robj;
 error:
 	return;
