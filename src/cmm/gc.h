@@ -50,15 +50,6 @@ typedef struct GC {
 	List *arp_stack;
 } GC;
 
-typedef struct ObjectDescriptor {
-	uintptr_t ref_count;
-	uintptr_t ref_map;
-} ObjectDescriptor;
-
-typedef struct ObjectHeader {
-	ObjectDescriptor *desc;
-} ObjectHeader;
-
 extern GC *__GC__;
 
 inline uintptr_t GC_get_block(uintptr_t ptr);

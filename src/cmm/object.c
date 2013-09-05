@@ -9,7 +9,7 @@ static inline ObjectHeader *Object_get_header(void *obj)
 static inline void Object_retain(void *obj)
 {
 	ObjectHeader *obj_header = Object_get_header(obj);
-	obj_header->desc->ref_count++;
+	obj_header->ref_count++;
 }
 
 inline int Object_validate_ptr(void *ptr)
@@ -32,8 +32,7 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	if(Object_validate_ptr(*obj)) {
-		ObjectHeader *obj_header = Object_get_header(*obj);
-		obj_header->desc->ref_count--;
+		Object_release(*obj);
 	}
 
 	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
@@ -43,17 +42,11 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 		GC_allocate_block(gc, 1, size_index);
 	}
 
-	ObjectDescriptor *obj_desc = calloc(1, sizeof(ObjectDescriptor));
-	check_mem(obj_desc);
-
 	ObjectHeader *obj_header = List_shift(freelist);
 	memset(obj_header, 0, gc->size_map[size_index]);
-	obj_header->desc = obj_desc;
-
-	obj_header->desc->ref_count++;
+	Object_retain((void *)(obj_header + 1));
 
 	*obj = obj_header + 1;
-
 error:
 	return;
 }
@@ -63,9 +56,9 @@ void Object_release(void *obj)
 	if(obj == NULL) return;
 
 	ObjectHeader *obj_header = Object_get_header(obj);
-	obj_header->desc->ref_count--;
+	obj_header->ref_count--;
 
-	if(obj_header->desc->ref_count == 0) {
+	if(obj_header->ref_count == 0) {
 		BlockHeader *block_header = GC_get_block_header(__GC__, (uintptr_t)obj_header);
 		uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
 		void *obj_addr = NULL;
@@ -86,8 +79,6 @@ void Object_release(void *obj)
 		int sz = GC_get_size(__GC__, block_header->size);
 		List *freelist = __GC__->freelist[sz];
 		List_push(freelist, obj_header);
-		
-		free(obj_header->desc);
 	}
 }
 
