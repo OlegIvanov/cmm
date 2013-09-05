@@ -3,6 +3,7 @@
 
 #include <cmm/list.h>
 #include <cmm/gc.h>
+#include <cmm/object.h>
 
 typedef struct ARPool {
 	List *pool;	

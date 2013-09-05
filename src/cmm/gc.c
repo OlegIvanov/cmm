@@ -123,6 +123,11 @@ error:
 	return -1;
 }
 
+__attribute__((constructor)) void GC_init()
+{
+	__GC__ = GC_create();
+}
+
 GC *GC_create()
 {
 	GC *gc = calloc(1, sizeof(GC));

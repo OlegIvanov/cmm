@@ -1,7 +1,5 @@
-#define CMM
-
 #include "minunit.h"
-#include <cmm/cmm.h>
+#include <cmm/arp.h>
 
 GC *gc;
 
