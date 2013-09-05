@@ -6,8 +6,13 @@
 #include <stdint.h>
 
 #define LOG_TOP_SZ					11
+#define TOP_SZ						(1UL << LOG_TOP_SZ)
+
 #define LOG_BOTTOM_SZ				10
+#define BOTTOM_SZ					(1UL << LOG_BOTTOM_SZ)
+
 #define LOG_BLOCK_SZ				13
+#define BLOCK_SZ					(1UL << LOG_BLOCK_SZ)
 
 #define BLOCK_DISPL_MASK			0x1FFFUL
 

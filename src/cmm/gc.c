@@ -179,9 +179,8 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	void *block = NULL;
-	uintptr_t block_size_bytes = GC_get_block(UINTPTR_MAX) + 1;
 
-	int rc = posix_memalign(&block, block_size_bytes, n * block_size_bytes);
+	int rc = posix_memalign(&block, BLOCK_SZ, n * BLOCK_SZ);
 	check(rc == 0, "Allocating block error occured.");
 
 	GC_subdivide_block(gc, block, size_index);
@@ -225,9 +224,8 @@ void GC_subdivide_block(GC *gc, void *block, uint16_t size_index)
 
 	uint32_t i = 0;
 	uint32_t object_size_bytes = gc->size_map[size_index];
-	uintptr_t block_size_bytes = GC_get_block(UINTPTR_MAX) + 1;
 
-	for(i = 0; i < block_size_bytes / object_size_bytes; i++) {
+	for(i = 0; i < BLOCK_SZ / object_size_bytes; i++) {
 		List_push(freelist, block + i * object_size_bytes);
 	}
 
@@ -243,7 +241,7 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
 	check_mem(bi);
 
-	bi->index = calloc(GC_get_bottom(UINTPTR_MAX) + 1, sizeof(BlockHeader *));
+	bi->index = calloc(BOTTOM_SZ, sizeof(BlockHeader *));
 	check_mem(bi->index);
 	
 	bi->key = GC_get_key((uintptr_t)block);
