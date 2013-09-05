@@ -21,7 +21,7 @@ static inline uintptr_t GC_get_bottom(uintptr_t ptr)
 
 inline uintptr_t GC_get_block(uintptr_t ptr)
 {
-	return ptr & BLOCK_DISPL_MASK;	
+	return ptr & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ));
 }
 
 static int GC_init_top_index(GC *gc)

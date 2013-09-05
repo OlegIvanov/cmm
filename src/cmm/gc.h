@@ -14,8 +14,6 @@
 #define LOG_BLOCK_SZ				13
 #define BLOCK_SZ					(1UL << LOG_BLOCK_SZ)
 
-#define BLOCK_DISPL_MASK			0x1FFFUL
-
 #if __WORDSIZE == 64
 	#define LOG_MIN_OBJECT_SZ		4
 #else
