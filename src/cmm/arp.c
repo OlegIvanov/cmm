@@ -48,3 +48,8 @@ void ARPool_autorelease(GC *gc, void *obj)
 error:
 	return;
 }
+
+void ARPool_release_callback(ARPool **arp)
+{
+	ARPool_release(__GC__);
+}

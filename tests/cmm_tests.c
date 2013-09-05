@@ -68,14 +68,15 @@ char *test_cascade()
 
 char *test_arp()
 {
-ARPC
-	B *b = NULL;
+	ARP()
+		B *b = NULL;
 
-	New(B, b);
-	Autorelease(b);
+		New(B, b);
+		Autorelease(b);
 
-	New(A, b->F_A);
-ARPR
+		New(A, b->F_A);
+	}
+
 	return NULL;
 }
 
