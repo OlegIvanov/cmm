@@ -120,6 +120,8 @@ char *test_arp_2()
 		mu_assert(ref(a) == 2, "Invalid ref. count.");
 	}
 
+	mu_assert(ref(a) == 1, "Invalid ref. count.");
+
 	return NULL;
 }
 
