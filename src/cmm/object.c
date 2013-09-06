@@ -51,15 +51,15 @@ error:
 
 static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
 {
-	uint32_t object_size_bytes = block_header->size - sizeof(ObjectHeader);
+	uint32_t object_size_words = (block_header->size - sizeof(ObjectHeader)) / WORD_SIZE_BYTES;
 	void **ptr = NULL;
 
-	for(ptr = (void **)obj; 
-		ptr < (void **)obj + object_size_bytes; 
+	for(ptr = (void **)obj;
+		ptr < (void **)obj + object_size_words;
 		ptr++) {
 
-		if(Object_validate_ptr(gc, ptr)) {
-			Object_release(gc, ptr);
+		if(Object_validate_ptr(gc, *ptr)) {
+			Object_release(gc, *ptr);
 		}
 	}
 }
