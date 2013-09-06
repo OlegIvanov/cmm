@@ -76,11 +76,11 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	Object_release(gc, *lobj);
-
 	if(Object_validate(gc, robj)) {
 		rtn(hdr(robj));
 	}
+	
+	Object_release(gc, *lobj);
 
 	*lobj = robj;
 error:
