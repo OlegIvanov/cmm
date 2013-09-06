@@ -14,5 +14,6 @@ typedef struct ObjectHeader {
 void Object_new(GC *gc, size_t type_size, void **obj);
 void Object_release(GC *gc, void *obj);
 void Object_copy(GC *gc, void **lobj, void *robj);
+int Object_retain_count(GC *gc, void *obj);
 
 #endif

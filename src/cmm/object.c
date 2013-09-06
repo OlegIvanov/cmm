@@ -95,3 +95,14 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 error:
 	return;
 }
+
+int Object_retain_count(GC *gc, void *obj)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	if(Object_validate_ptr(gc, obj)) {
+		return Object_get_header(obj)->ref_count;
+	}
+error:
+	return -1;
+}
