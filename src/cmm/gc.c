@@ -4,26 +4,6 @@
 
 GC *__GC__;
 
-static inline uintptr_t GC_get_top(uintptr_t ptr)
-{
-	return (ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ);
-}
-
-static inline uintptr_t GC_get_key(uintptr_t ptr)
-{
-	return ptr >> (__WORDSIZE - KEY_BIT);
-}
-
-static inline uintptr_t GC_get_bottom(uintptr_t ptr)
-{
-	return (ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ);
-}
-
-inline uintptr_t GC_get_block(uintptr_t ptr)
-{
-	return ptr & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ));
-}
-
 static int GC_init_top_index(GC *gc)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
@@ -184,7 +164,7 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	GC_subdivide_block(gc, block, size_index);
 
 	BottomIndex *bi = NULL;
-	uintptr_t top = GC_get_top((uintptr_t)block);
+	uintptr_t top = TOP((uintptr_t)block);
 
 	if(gc->top_index[top] == gc->all_nils) {
 		bi = GC_create_bottom_index(gc, block);
@@ -192,9 +172,8 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	}
 
 	bi = gc->top_index[top];
-	uintptr_t key = GC_get_key((uintptr_t)block);
 
-	while(bi->key != key) {
+	while(bi->key != KEY((uintptr_t)block)) {
 		bi = bi->hash_link;
 
 		if(bi == NULL) {
@@ -204,10 +183,7 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	}
 
 	BlockHeader *header = GC_create_block_header(gc, size_index);
-
-	uintptr_t bottom = GC_get_bottom((uintptr_t)block);
-	bi->index[bottom] = header;
-	
+	bi->index[BOTTOM((uintptr_t)block)] = header;
 error:
 	return;
 }
@@ -242,7 +218,7 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 	bi->index = calloc(BOTTOM_SZ, sizeof(BlockHeader *));
 	check_mem(bi->index);
 	
-	bi->key = GC_get_key((uintptr_t)block);
+	bi->key = KEY((uintptr_t)block);
 
 	return bi;
 
@@ -272,21 +248,15 @@ error:
 
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
 {	
-	if(ptr < (uintptr_t)gc->heap_range.low 
+	if(ptr < (uintptr_t)gc->heap_range.low
 	|| ptr > (uintptr_t)gc->heap_range.high) return NULL;
 
-	uintptr_t top = GC_get_top(ptr);
-	BottomIndex *bi = gc->top_index[top];
+	BottomIndex *bi = gc->top_index[TOP(ptr)];
 
-	uintptr_t key = GC_get_key(ptr);
-
-	while(bi->key != key) {
+	while(bi->key != KEY(ptr)) {
 		bi = bi->hash_link;
-
 		if(bi == NULL) return NULL;
 	}
 
-	uintptr_t bottom = GC_get_bottom(ptr);
-
-	return bi->index[bottom];
+	return bi->index[BOTTOM(ptr)];
 }

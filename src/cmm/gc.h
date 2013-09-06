@@ -28,6 +28,11 @@
 
 #define MAX_BLOCK_OFFSET_WORDS_SZ	((1UL << LOG_BLOCK_SZ) / WORD_SIZE_BYTES)
 
+#define	KEY(Ptr)					(Ptr >> (__WORDSIZE - KEY_BIT))
+#define	TOP(Ptr)					((Ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ))
+#define	BOTTOM(Ptr)					((Ptr << (KEY_BIT + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
+#define BLOCK(Ptr)					(Ptr & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
+
 typedef struct BlockHeader {
 	uint32_t size;
 	uint16_t size_index;
