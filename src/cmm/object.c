@@ -1,35 +1,27 @@
 #include <cmm/object.h>
 #include <cmm/gc.h>
 
-static inline ObjectHeader *Object_get_header(void *obj)
-{
-	return (ObjectHeader *)obj - 1;
-}
-
 static inline int Object_validate_ptr(GC *gc, void *ptr)
 {
 	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
+
 	if(block_header) {
-		int16_t block_displ_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
-		if(block_header->map[block_displ_words - 1] == 0) {
+		int16_t block_offset_words = GC_get_block((uintptr_t)ptr) / WORD_SIZE_BYTES;
+		if(block_header->map[block_offset_words - 1] == 0) {
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
 static inline int Object_validate(GC *gc, void *obj)
 {
 	if(Object_validate_ptr(gc, obj)) {
-		return Object_get_header(obj)->ref_count > 0;	
+		return hdr(obj)->ref_count > 0;
 	}
-	return 0;
-}
 
-static inline void Object_retain(GC *gc, void *obj)
-{
-	ObjectHeader *obj_header = Object_get_header(obj);
-	obj_header->ref_count++;
+	return 0;
 }
 
 void Object_new(GC *gc, size_t type_size, void **obj)
@@ -45,12 +37,12 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 		GC_allocate_block(gc, 1, size_index);
 	}
 
-	ObjectHeader *obj_header = List_shift(freelist);
-	memset(obj_header, 0, gc->size_map[size_index]);
+	ObjectHeader *hdr = List_shift(freelist);
+	memset(hdr, 0, gc->size_map[size_index]);
 
-	Object_retain(gc, (void *)(obj_header + 1));
+	retain(hdr);
 
-	*obj = obj_header + 1;
+	*obj = obj(hdr);
 error:
 	return;
 }
@@ -70,15 +62,14 @@ static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
 
 void Object_release(GC *gc, void *obj)
 {
-	if(!Object_validate(gc, obj)) return;
+	if(Object_validate(gc, obj)) {
+		hdr(obj)->ref_count--;
 
-	ObjectHeader *obj_header = Object_get_header(obj);
-	obj_header->ref_count--;
-
-	if(obj_header->ref_count == 0) {
-		BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj_header);
-		Object_release_childs(gc, obj, block_header);
-		List_push(gc->freelist[block_header->size_index], obj_header);	
+		if(hdr(obj)->ref_count == 0) {
+			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)hdr(obj));
+			Object_release_childs(gc, obj, block_header);
+			List_push(gc->freelist[block_header->size_index], hdr(obj));
+		}
 	}
 }
 
@@ -89,7 +80,7 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 	Object_release(gc, *lobj);
 
 	if(Object_validate(gc, robj)) {
-		Object_retain(gc, robj);
+		retain(hdr(robj));
 	}
 
 	*lobj = robj;
@@ -102,7 +93,7 @@ int Object_retain_count(GC *gc, void *obj)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	if(Object_validate(gc, obj)) {
-		return Object_get_header(obj)->ref_count;
+		return hdr(obj)->ref_count;
 	}
 error:
 	return -1;
