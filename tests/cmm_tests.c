@@ -4,6 +4,7 @@
 GC *gc;
 
 #define ref(obj) RetainCount(obj)
+#define ref_msg "Invalid reference count."
 
 void test_setup()
 {
@@ -56,21 +57,21 @@ char *test_gc_init_obj_map()
 char *test_release_1()
 {
 	C *c = NULL;
-	mu_assert(ref(c) == -1, "Invalid ref. count.");
+	mu_assert(ref(c) == -1, ref_msg);
 
 	New(C, c);
-	mu_assert(ref(c) == 1, "Invalid ref. count.");
-	mu_assert(ref(c->F_B) == -1, "Invalid ref. count.");
+	mu_assert(ref(c) == 1, ref_msg);
+	mu_assert(ref(c->F_B) == -1, ref_msg);
 
 	New(B, c->F_B);
-	mu_assert(ref(c->F_B) == 1, "Invalid ref. count.");
+	mu_assert(ref(c->F_B) == 1, ref_msg);
 
 	New(A, c->F_B->F_A);
-	mu_assert(ref(c->F_B->F_A) == 1, "Invalid ref. count.");
+	mu_assert(ref(c->F_B->F_A) == 1, ref_msg);
 	
 	Release(c->F_B);
-	mu_assert(ref(c->F_B) == -1, "Invalid ref. count.");
-	mu_assert(ref(c->F_B->F_A) == -1, "Invalid ref. count.");
+	mu_assert(ref(c->F_B) == -1, ref_msg);
+	mu_assert(ref(c->F_B->F_A) == -1, ref_msg);
 
 	return NULL;
 }
@@ -79,17 +80,17 @@ char *test_arp_1()
 {
 	ARP()
 		B *b = NULL;
-		mu_assert(ref(b) == -1, "Invalid ref. count.");
+		mu_assert(ref(b) == -1, ref_msg);
 
 		New(B, b);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
 
 		Autorelease(b);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
 
 		New(A, b->F_A);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
-		mu_assert(ref(b->F_A) == 1, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(ref(b->F_A) == 1, ref_msg);
 	}
 
 	return NULL;
@@ -98,29 +99,66 @@ char *test_arp_1()
 char *test_arp_2()
 {
 	A *a = NULL;
-	mu_assert(ref(a) == -1, "Invalid ref. count.");
+	mu_assert(ref(a) == -1, ref_msg);
 
 	ARP()
 		B *b = NULL;
-		mu_assert(ref(b) == -1, "Invalid ref. count.");
+		mu_assert(ref(b) == -1, ref_msg);
 
 		New(B, b);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
 
 		Autorelease(b);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
 
 		New(A, b->F_A);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
-		mu_assert(ref(b->F_A) == 1, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(ref(b->F_A) == 1, ref_msg);
 
 		Copy(a, b->F_A);
-		mu_assert(ref(b) == 1, "Invalid ref. count.");
-		mu_assert(ref(b->F_A) == 2, "Invalid ref. count.");
-		mu_assert(ref(a) == 2, "Invalid ref. count.");
+		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(ref(b->F_A) == 2, ref_msg);
+		mu_assert(ref(a) == 2, ref_msg);
 	}
 
-	mu_assert(ref(a) == 1, "Invalid ref. count.");
+	mu_assert(ref(a) == 1, ref_msg);
+
+	return NULL;
+}
+
+char *test_arp_3()
+{
+	ARP()
+		B *b = NULL;
+		mu_assert(ref(b) == -1, ref_msg);
+
+		New(B, b);
+		mu_assert(ref(b) == 1, ref_msg);
+
+		New(A, b->F_A);
+		mu_assert(ref(b) == 1, ref_msg);
+
+		Autorelease(b);
+
+		ARP()
+			C *c = NULL;
+			mu_assert(ref(c) == -1, ref_msg);
+
+			New(C, c);
+			mu_assert(ref(c) == 1, ref_msg);
+
+			Copy(c->F_B, b);
+			mu_assert(ref(b) == 2, ref_msg);
+
+			Copy(c, NULL);
+			mu_assert(ref(c) == -1, ref_msg);
+			mu_assert(ref(b) == 1, ref_msg);
+
+			Autorelease(b);
+		}
+
+		mu_assert(ref(b) == -1, ref_msg);
+	}
 
 	return NULL;
 }
@@ -154,6 +192,7 @@ char *all_tests() {
 
 	mu_run_test(test_arp_1);
 	mu_run_test(test_arp_2);
+	mu_run_test(test_arp_3);
 
 	return NULL;
 }
