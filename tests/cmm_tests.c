@@ -96,6 +96,10 @@ char *test_copy_1()
 
 	Copy(a, NULL);
 	mu_assert(ref(a) == -1, ref_msg);
+	mu_assert(ref(b->F_A) == 1, ref_msg);
+
+	Copy(b->F_A, NULL);
+	mu_assert(ref(b->F_A) == -1, ref_msg);
 
 	return NULL;
 }
