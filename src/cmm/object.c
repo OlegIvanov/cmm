@@ -12,7 +12,7 @@ static inline void Object_retain(void *obj)
 	obj_header->ref_count++;
 }
 
-inline int Object_validate_ptr(GC *gc, void *ptr)
+static inline int Object_validate_ptr(GC *gc, void *ptr)
 {
 	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
 	if(block_header) {
@@ -21,8 +21,12 @@ inline int Object_validate_ptr(GC *gc, void *ptr)
 			return 1;
 		}
 	}
-
 	return 0;
+}
+
+static inline int Object_validate_obj(void *obj)
+{
+	return Object_get_header(obj)->ref_count > 0;
 }
 
 void Object_new(GC *gc, size_t type_size, void **obj)
@@ -58,15 +62,15 @@ static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
 		ptr < (void **)obj + object_size_words;
 		ptr++) {
 
-		if(Object_validate_ptr(gc, *ptr)) {
-			Object_release(gc, *ptr);
-		}
+		Object_release(gc, *ptr);
 	}
 }
 
 void Object_release(GC *gc, void *obj)
 {
 	if(obj == NULL) return;
+	if(!Object_validate_ptr(gc, obj)) return;
+	if(!Object_validate_obj(obj)) return;
 
 	ObjectHeader *obj_header = Object_get_header(obj);
 	obj_header->ref_count--;
