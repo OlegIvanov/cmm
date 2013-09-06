@@ -76,6 +76,30 @@ char *test_release_1()
 	return NULL;
 }
 
+char *test_copy_1()
+{
+	B *b = NULL;
+	mu_assert(ref(b) == -1, ref_msg);
+
+	New(B, b);
+	mu_assert(ref(b) == 1, ref_msg);
+
+	New(A, b->F_A);
+	mu_assert(ref(b) == 1, ref_msg);
+	mu_assert(ref(b->F_A) == 1, ref_msg);
+
+	A *a = NULL;
+	mu_assert(ref(a) == -1, ref_msg);
+
+	Copy(a, b->F_A);
+	mu_assert(ref(a) == 2, ref_msg);
+
+	Copy(a, NULL);
+	mu_assert(ref(a) == -1, ref_msg);
+
+	return NULL;
+}
+
 char *test_arp_1()
 {
 	ARP()
@@ -159,21 +183,6 @@ char *test_arp_3()
 
 		mu_assert(ref(b) == -1, ref_msg);
 	}
-
-	return NULL;
-}
-
-char *test_copy_1()
-{
-	B *b = NULL;
-
-	New(B, b);
-	New(A, b->F_A);
-
-	A *a = NULL;	
-
-	Copy(a, b->F_A);
-	Copy(a, NULL);
 
 	return NULL;
 }
