@@ -40,8 +40,7 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	ObjectHeader *hdr = List_shift(freelist);
 	memset(hdr, 0, gc->size_map[size_index]);
 
-	retain(hdr);
-
+	rtn(hdr);
 	*obj = obj(hdr);
 error:
 	return;
@@ -63,7 +62,7 @@ static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
 void Object_release(GC *gc, void *obj)
 {
 	if(Object_validate(gc, obj)) {
-		hdr(obj)->ref_count--;
+		rls(hdr(obj));
 
 		if(hdr(obj)->ref_count == 0) {
 			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)hdr(obj));
@@ -80,7 +79,7 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 	Object_release(gc, *lobj);
 
 	if(Object_validate(gc, robj)) {
-		retain(hdr(robj));
+		rtn(hdr(robj));
 	}
 
 	*lobj = robj;

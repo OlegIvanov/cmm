@@ -14,7 +14,8 @@ typedef struct ObjectHeader {
 
 #define hdr(obj)				((ObjectHeader *)obj - 1)
 #define obj(hdr)				(hdr + 1)
-#define retain(hdr)				hdr->ref_count++
+#define rtn(hdr)				(hdr)->ref_count++
+#define rls(hdr)				(hdr)->ref_count--
 
 void Object_new(GC *gc, size_t type_size, void **obj);
 void Object_release(GC *gc, void *obj);
