@@ -53,42 +53,77 @@ char *test_gc_init_obj_map()
 	return NULL;
 }
 
-char *test_cascade()
+char *test_release_1()
 {
 	C *c = NULL;
-	mu_assert(ref(c) == -1, "Invalid reference count.");
+	mu_assert(ref(c) == -1, "Invalid ref. count.");
 
 	New(C, c);
-	mu_assert(ref(c) == 1, "Invalid reference count.");
+	mu_assert(ref(c) == 1, "Invalid ref. count.");
+	mu_assert(ref(c->F_B) == -1, "Invalid ref. count.");
 
 	New(B, c->F_B);
-	mu_assert(ref(c->F_B) == 1, "Invalid reference count.");
+	mu_assert(ref(c->F_B) == 1, "Invalid ref. count.");
 
 	New(A, c->F_B->F_A);
-	mu_assert(ref(c->F_B->F_A) == 1, "Invalid reference count.");
+	mu_assert(ref(c->F_B->F_A) == 1, "Invalid ref. count.");
 	
 	Release(c->F_B);
-	mu_assert(ref(c->F_B) == -1, "Invalid reference count.");
-	mu_assert(ref(c->F_B->F_A) == -1, "Invalid reference count.");
+	mu_assert(ref(c->F_B) == -1, "Invalid ref. count.");
+	mu_assert(ref(c->F_B->F_A) == -1, "Invalid ref. count.");
 
 	return NULL;
 }
 
-char *test_arp()
+char *test_arp_1()
 {
 	ARP()
 		B *b = NULL;
+		mu_assert(ref(b) == -1, "Invalid ref. count.");
 
 		New(B, b);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
+
 		Autorelease(b);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
 
 		New(A, b->F_A);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b->F_A) == 1, "Invalid ref. count.");
 	}
 
 	return NULL;
 }
 
-char *test_copy()
+char *test_arp_2()
+{
+	A *a = NULL;
+	mu_assert(ref(a) == -1, "Invalid ref. count.");
+
+	ARP()
+		B *b = NULL;
+		mu_assert(ref(b) == -1, "Invalid ref. count.");
+
+		New(B, b);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
+
+		Autorelease(b);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
+
+		New(A, b->F_A);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b->F_A) == 1, "Invalid ref. count.");
+
+		Copy(a, b->F_A);
+		mu_assert(ref(b) == 1, "Invalid ref. count.");
+		mu_assert(ref(b->F_A) == 2, "Invalid ref. count.");
+		mu_assert(ref(a) == 2, "Invalid ref. count.");
+	}
+
+	return NULL;
+}
+
+char *test_copy_1()
 {
 	B *b = NULL;
 
@@ -110,9 +145,13 @@ char *all_tests() {
 
 	mu_run_test(test_gc_init_size_map);
 	mu_run_test(test_gc_init_obj_map);
-	mu_run_test(test_cascade);
-	mu_run_test(test_arp);
-	mu_run_test(test_copy);
+
+	mu_run_test(test_release_1);
+
+	mu_run_test(test_copy_1);
+
+	mu_run_test(test_arp_1);
+	mu_run_test(test_arp_2);
 
 	return NULL;
 }
