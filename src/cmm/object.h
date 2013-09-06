@@ -5,7 +5,8 @@
 
 #define New(Type, Ptr)			Object_new(__GC__, sizeof(Type), (void **)&(Ptr))
 #define Release(Obj)			Object_release(__GC__, (void *)(Obj))
-#define Copy(LObj, RObj) 		Object_copy(__GC__, (void **)&(LObj), (void *)(RObj));
+#define Copy(LObj, RObj) 		Object_copy(__GC__, (void **)&(LObj), (void *)(RObj))
+#define RetainCount(Obj)		Object_retain_count(__GC__, (void *)(Obj))
 
 typedef struct ObjectHeader {
 	uintptr_t ref_count;

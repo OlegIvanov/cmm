@@ -3,6 +3,8 @@
 
 GC *gc;
 
+#define ref(obj) RetainCount(obj)
+
 void test_setup()
 {
 	gc = __GC__;
@@ -54,12 +56,20 @@ char *test_gc_init_obj_map()
 char *test_cascade()
 {
 	C *c = NULL;
+	mu_assert(ref(c) == -1, "Invalid reference count.");
 
 	New(C, c);
+	mu_assert(ref(c) == 1, "Invalid reference count.");
+
 	New(B, c->F_B);
+	mu_assert(ref(c->F_B) == 1, "Invalid reference count.");
+
 	New(A, c->F_B->F_A);
+	mu_assert(ref(c->F_B->F_A) == 1, "Invalid reference count.");
 	
-	Release(c);
+	Release(c->F_B);
+	mu_assert(ref(c->F_B) == -1, "Invalid reference count.");
+	mu_assert(ref(c->F_B->F_A) == 1, "Invalid reference count.");
 
 	return NULL;
 }
