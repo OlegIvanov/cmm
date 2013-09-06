@@ -6,12 +6,6 @@ static inline ObjectHeader *Object_get_header(void *obj)
 	return (ObjectHeader *)obj - 1;
 }
 
-static inline void Object_retain(void *obj)
-{
-	ObjectHeader *obj_header = Object_get_header(obj);
-	obj_header->ref_count++;
-}
-
 static inline int Object_validate_ptr(GC *gc, void *ptr)
 {
 	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
@@ -24,9 +18,18 @@ static inline int Object_validate_ptr(GC *gc, void *ptr)
 	return 0;
 }
 
-static inline int Object_validate_obj(void *obj)
+static inline int Object_validate(GC *gc, void *obj)
 {
-	return Object_get_header(obj)->ref_count > 0;
+	if(Object_validate_ptr(gc, obj)) {
+		return Object_get_header(obj)->ref_count > 0;	
+	}
+	return 0;
+}
+
+static inline void Object_retain(GC *gc, void *obj)
+{
+	ObjectHeader *obj_header = Object_get_header(obj);
+	obj_header->ref_count++;
 }
 
 void Object_new(GC *gc, size_t type_size, void **obj)
@@ -44,7 +47,8 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 
 	ObjectHeader *obj_header = List_shift(freelist);
 	memset(obj_header, 0, gc->size_map[size_index]);
-	Object_retain((void *)(obj_header + 1));
+
+	Object_retain(gc, (void *)(obj_header + 1));
 
 	*obj = obj_header + 1;
 error:
@@ -66,9 +70,7 @@ static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
 
 void Object_release(GC *gc, void *obj)
 {
-	if(obj == NULL) return;
-	if(!Object_validate_ptr(gc, obj)) return;
-	if(!Object_validate_obj(obj)) return;
+	if(!Object_validate(gc, obj)) return;
 
 	ObjectHeader *obj_header = Object_get_header(obj);
 	obj_header->ref_count--;
@@ -84,15 +86,12 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	if(robj) {
-		check(Object_validate_ptr(gc, robj), "Invalid 'robj' pointer.");
+	Object_release(gc, *lobj);
+
+	if(Object_validate(gc, robj)) {
+		Object_retain(gc, robj);
 	}
-	if(Object_validate_ptr(gc, *lobj)) {
-		Object_release(gc, *lobj);
-	}
-	if(robj) {
-		Object_retain(robj);
-	}
+
 	*lobj = robj;
 error:
 	return;
@@ -102,10 +101,8 @@ int Object_retain_count(GC *gc, void *obj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	if(Object_validate_ptr(gc, obj)) {
-		if(Object_validate_obj(obj)) {
-			return Object_get_header(obj)->ref_count;
-		}
+	if(Object_validate(gc, obj)) {
+		return Object_get_header(obj)->ref_count;
 	}
 error:
 	return -1;
