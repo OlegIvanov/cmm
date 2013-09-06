@@ -33,9 +33,7 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
-	if(Object_validate_ptr(gc, *obj)) {
-		Object_release(gc, *obj);
-	}
+	Object_release(gc, *obj);
 
 	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
 	List *freelist = gc->freelist[size_index];
@@ -105,7 +103,9 @@ int Object_retain_count(GC *gc, void *obj)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	if(Object_validate_ptr(gc, obj)) {
-		return Object_get_header(obj)->ref_count;
+		if(Object_validate_obj(obj)) {
+			return Object_get_header(obj)->ref_count;
+		}
 	}
 error:
 	return -1;

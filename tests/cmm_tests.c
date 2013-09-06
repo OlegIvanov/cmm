@@ -68,8 +68,8 @@ char *test_cascade()
 	mu_assert(ref(c->F_B->F_A) == 1, "Invalid reference count.");
 	
 	Release(c->F_B);
-	mu_assert(ref(c->F_B) == 0, "Invalid reference count.");
-	mu_assert(ref(c->F_B->F_A) == 0, "Invalid reference count.");
+	mu_assert(ref(c->F_B) == -1, "Invalid reference count.");
+	mu_assert(ref(c->F_B->F_A) == -1, "Invalid reference count.");
 
 	return NULL;
 }
