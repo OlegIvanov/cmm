@@ -76,6 +76,25 @@ char *test_release_1()
 	return NULL;
 }
 
+char *test_release_2()
+{
+	B *b = NULL;
+	mu_assert(ref(b) == -1, ref_msg);
+
+	New(B, b);
+	mu_assert(ref(b) == 1, ref_msg);
+
+	// cyclical reference
+	Copy(b->F_A, b);
+	mu_assert(ref(b) == 2, ref_msg);
+	mu_assert(ref(b->F_A) == 2, ref_msg);
+
+	Release(b);
+	mu_assert(ref(b) == 1, ref_msg);
+
+	return NULL;
+}
+
 char *test_copy_1()
 {
 	B *b = NULL;
@@ -224,6 +243,7 @@ char *all_tests() {
 	mu_run_test(test_gc_init_obj_map);
 
 	mu_run_test(test_release_1);
+	mu_run_test(test_release_2);
 
 	mu_run_test(test_copy_1);
 	mu_run_test(test_copy_2);
