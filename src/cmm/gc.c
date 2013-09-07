@@ -151,7 +151,6 @@ int GC_get_size(GC *gc, size_t size)
 			return i;
 		}
 	}
-
 error:
 	return -1;
 }
@@ -173,16 +172,14 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	if(gc->top_index[top] == gc->all_nils) {
 		bi = GC_create_bottom_index(block);
 		gc->top_index[top] = bi;
-	}
-
-	bi = gc->top_index[top];
-
-	while(bi->key != KEY((uintptr_t)block)) {
-		bi = bi->hash_link;
-
-		if(bi == NULL) {
-			bi = GC_create_bottom_index(block);
-			break;
+	} else {
+		bi = gc->top_index[top];
+		while(bi->key != KEY((uintptr_t)block)) {
+			bi = bi->hash_link;
+			if(bi == NULL) {
+				bi = GC_create_bottom_index(block);
+				break;
+			}
 		}
 	}
 
@@ -206,7 +203,6 @@ void GC_subdivide_block(GC *gc, void *block, uint16_t size_index)
 	for(i = 0; i < BLOCK_SZ / object_size_bytes; i++) {
 		List_push(freelist, block + i * object_size_bytes);
 	}
-
 error:
 	return;
 }
