@@ -17,7 +17,7 @@ static inline int Object_validate_ptr(GC *gc, void *ptr)
 static inline int Object_validate(GC *gc, void *obj)
 {
 	if(Object_validate_ptr(gc, obj)) {
-		return hdr(obj)->ref_count > 0;
+		return header(obj)->ref_count > 0;
 	}
 
 	return 0;
@@ -39,8 +39,8 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	ObjectHeader *hdr = List_shift(freelist);
 	memset(hdr, 0, gc->size_map[size_index]);
 
-	rtn(hdr);
-	*obj = obj(hdr);
+	retain(hdr);
+	*obj = object(hdr);
 error:
 	return;
 }
@@ -48,19 +48,19 @@ error:
 void Object_release(GC *gc, void *obj)
 {
 	if(Object_validate(gc, obj)) {
-		rls(hdr(obj));
+		release(header(obj));
 
-		if(hdr(obj)->ref_count == 0) {
-			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)hdr(obj));
+		if(header(obj)->ref_count == 0) {
+			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)header(obj));
 			
-			void **objend = obj + block_header->size - sizeof(ObjectHeader);
-			void **objaddr = NULL;
-			
-			for(objaddr = obj; objaddr < objend; objaddr++) {
-				Object_release(gc, *objaddr);
+			void **interior = obj;
+			void *objend = obj + block_header->size - sizeof(ObjectHeader);
+			while(interior < objend) {
+				Object_release(gc, *interior);
+				interior++;
 			}
 
-			List_push(gc->freelist[block_header->size_index], hdr(obj));
+			List_push(gc->freelist[block_header->size_index], header(obj));
 		}
 	}
 }
@@ -70,7 +70,7 @@ void Object_copy(GC *gc, void **lobj, void *robj)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	if(Object_validate(gc, robj)) {
-		rtn(hdr(robj));
+		retain(header(robj));
 	}
 	
 	Object_release(gc, *lobj);
@@ -85,7 +85,7 @@ int Object_retain_count(GC *gc, void *obj)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	if(Object_validate(gc, obj)) {
-		return hdr(obj)->ref_count;
+		return header(obj)->ref_count;
 	}
 error:
 	return -1;
