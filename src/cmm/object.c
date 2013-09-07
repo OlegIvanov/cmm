@@ -37,9 +37,8 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	}
 
 	ObjectHeader *hdr = List_shift(freelist);
-	memset(hdr, 0, gc->size_map[size_index]);
-
 	retain(hdr);
+
 	*obj = object(hdr);
 error:
 	return;
@@ -59,8 +58,6 @@ void Object_release(GC *gc, void *obj)
 				Object_release(gc, *interior);
 				interior++;
 			}
-
-			List_push(gc->freelist[block_header->size_index], header(obj));
 		}
 	}
 }
