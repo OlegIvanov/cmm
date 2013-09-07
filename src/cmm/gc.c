@@ -112,8 +112,8 @@ GC *GC_create()
 	gc->top_index = calloc(TOP_SZ, sizeof(BottomIndex *));
 	check_mem(gc->top_index);
 
-	gc->all_nils = calloc(1, sizeof(BottomIndex));
-	check_mem(gc->all_nils);
+	gc->all_nils = GC_create_bottom_index(NULL);
+	check(gc->all_nils, "Error creating all_nils table.");
 
 	gc->obj_map = calloc(1, SIZE_SZ * MAX_BLOCK_OFFSET_WORDS_SZ * sizeof(int16_t));
 	check_mem(gc->obj_map);
@@ -131,6 +131,9 @@ error:
 	if(gc) {
 		List_destroy(gc->arp_stack);
 		free(gc->obj_map);
+		if(gc->all_nils) {
+			free(gc->all_nils->index);
+		}
 		free(gc->all_nils);
 		free(gc->top_index);
 	}
@@ -245,7 +248,7 @@ error:
 }
 
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
-{	
+{
 	if(ptr < (uintptr_t)gc->heap_range.low
 	|| ptr > (uintptr_t)gc->heap_range.high) return NULL;
 
