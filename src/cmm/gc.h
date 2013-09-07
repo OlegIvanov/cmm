@@ -24,9 +24,7 @@
 
 #define KEY_BIT						(__WORDSIZE - ((LOG_TOP_SZ) + (LOG_BOTTOM_SZ) + (LOG_BLOCK_SZ)))
 
-#define WORD_SIZE_BYTES				(__WORDSIZE / 8)
-
-#define MAX_BLOCK_OFFSET_WORDS_SZ	((1UL << LOG_BLOCK_SZ) / WORD_SIZE_BYTES)
+#define MAX_BLOCK_OFFSET_WORDS_SZ	((1UL << LOG_BLOCK_SZ) / sizeof(uintptr_t))
 
 #define	KEY(Ptr)					(Ptr >> (__WORDSIZE - KEY_BIT))
 #define	TOP(Ptr)					((Ptr << KEY_BIT) >> (__WORDSIZE - LOG_TOP_SZ))

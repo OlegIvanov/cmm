@@ -55,7 +55,7 @@ static int GC_init_obj_map(GC *gc)
 	uint32_t object_size_words = 0;
 
 	for(j = 0; j < SIZE_SZ; j++) {
-		object_size_words = gc->size_map[j] / WORD_SIZE_BYTES;
+		object_size_words = gc->size_map[j] / sizeof(uintptr_t);
 
 		for(i = 0; i < MAX_BLOCK_OFFSET_WORDS_SZ; i++) {
 			*(gc->obj_map + j * MAX_BLOCK_OFFSET_WORDS_SZ + i) = i % object_size_words;

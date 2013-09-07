@@ -6,7 +6,7 @@ static inline int Object_validate_ptr(GC *gc, void *ptr)
 	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
 
 	if(block_header) {
-		if(block_header->map[BLOCK((uintptr_t)ptr) / WORD_SIZE_BYTES - 1] == 0) {
+		if(block_header->map[BLOCK((uintptr_t)ptr) / sizeof(uintptr_t) - 1] == 0) {
 			return 1;
 		}
 	}
