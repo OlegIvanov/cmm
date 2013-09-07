@@ -238,7 +238,8 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
-	header->marks = calloc(1, BLOCK_SZ / header->size / 8);
+	int marks_size_words = BLOCK_SZ / header->size / 8 / sizeof(uintptr_t);
+	header->marks = calloc(marks_size_words > 0 ? marks_size_words : 1, sizeof(uintptr_t));
 
 	return header;
 error:
