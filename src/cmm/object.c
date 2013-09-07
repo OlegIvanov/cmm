@@ -1,23 +1,16 @@
 #include <cmm/object.h>
 #include <cmm/gc.h>
 
-static inline int Object_validate_ptr(GC *gc, void *ptr)
-{
-	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)ptr);
-
-	if(block_header) {
-		if(block_header->map[BLOCK((uintptr_t)ptr) / sizeof(uintptr_t) - 1] == 0) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
 static inline int Object_validate(GC *gc, void *obj)
 {
-	if(Object_validate_ptr(gc, obj)) {
-		return header(obj)->ref_count > 0;
+	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj);
+
+	if(block_header) {
+		int block_offset_words_index = BLOCK((uintptr_t)obj) / sizeof(uintptr_t) - 1;
+
+		if(block_header->map[block_offset_words_index] == 0) {
+			return header(obj)->ref_count > 0;
+		}
 	}
 
 	return 0;
