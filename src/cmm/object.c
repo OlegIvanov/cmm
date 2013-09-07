@@ -45,19 +45,6 @@ error:
 	return;
 }
 
-static void Object_release_childs(GC *gc, void *obj, BlockHeader *block_header)
-{
-	uint32_t object_size_words = (block_header->size - sizeof(ObjectHeader)) / WORD_SIZE_BYTES;
-	void **ptr = NULL;
-
-	for(ptr = (void **)obj;
-		ptr < (void **)obj + object_size_words;
-		ptr++) {
-
-		Object_release(gc, *ptr);
-	}
-}
-
 void Object_release(GC *gc, void *obj)
 {
 	if(Object_validate(gc, obj)) {
@@ -65,7 +52,14 @@ void Object_release(GC *gc, void *obj)
 
 		if(hdr(obj)->ref_count == 0) {
 			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)hdr(obj));
-			Object_release_childs(gc, obj, block_header);
+			
+			void **objend = obj + block_header->size - sizeof(ObjectHeader);
+			void **objaddr = NULL;
+			
+			for(objaddr = obj; objaddr < objend; objaddr++) {
+				Object_release(gc, *objaddr);
+			}
+
 			List_push(gc->freelist[block_header->size_index], hdr(obj));
 		}
 	}
