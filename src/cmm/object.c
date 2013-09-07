@@ -54,7 +54,7 @@ void Object_release(GC *gc, void *obj)
 			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)header(obj));
 			
 			void **interior = obj;
-			void *objend = obj + block_header->size - sizeof(ObjectHeader);
+			void **objend = obj + block_header->size - sizeof(ObjectHeader);
 			while(interior < objend) {
 				Object_release(gc, *interior);
 				interior++;
