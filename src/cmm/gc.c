@@ -241,10 +241,8 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 	int marks_size_bytes = BLOCK_SZ / header->size / 8;
 	marks_size_bytes = marks_size_bytes > 0 ? marks_size_bytes : 1;
 
-	header->marks = malloc(marks_size_bytes);
+	header->marks = calloc(1, marks_size_bytes);
 	check_mem(header->marks);
-
-	memset(header->marks, 0xFF, marks_size_bytes);
 
 	return header;
 error:
