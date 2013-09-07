@@ -127,13 +127,14 @@ GC *GC_create()
 	GC_init_freelist(gc);
 
 	return gc;
-
 error:
-	free(gc->obj_map);
-	free(gc->top_index);
-	free(gc->all_nils);
+	if(gc) {
+		List_destroy(gc->arp_stack);
+		free(gc->obj_map);
+		free(gc->all_nils);
+		free(gc->top_index);
+	}
 	free(gc);
-
 	return NULL;
 }
 
@@ -167,7 +168,7 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	uintptr_t top = TOP((uintptr_t)block);
 
 	if(gc->top_index[top] == gc->all_nils) {
-		bi = GC_create_bottom_index(gc, block);
+		bi = GC_create_bottom_index(block);
 		gc->top_index[top] = bi;
 	}
 
@@ -177,7 +178,7 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 		bi = bi->hash_link;
 
 		if(bi == NULL) {
-			bi = GC_create_bottom_index(gc, block);
+			bi = GC_create_bottom_index(block);
 			break;
 		}
 	}
@@ -207,11 +208,8 @@ error:
 	return;
 }
 
-BottomIndex *GC_create_bottom_index(GC *gc, void *block)
+BottomIndex *GC_create_bottom_index(void *block)
 {
-	check(gc, "Argument 'gc' can't be NULL.");
-	check(block, "Argument 'block' can't be NULL.");
-
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
 	check_mem(bi);
 
@@ -221,11 +219,11 @@ BottomIndex *GC_create_bottom_index(GC *gc, void *block)
 	bi->key = KEY((uintptr_t)block);
 
 	return bi;
-
 error:
-	free(bi->index);
+	if(bi) {
+		free(bi->index);
+	}	
 	free(bi);
-
 	return NULL;
 }
 
