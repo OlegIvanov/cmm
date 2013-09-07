@@ -35,7 +35,7 @@ typedef struct BlockHeader {
 	uint32_t size;
 	uint16_t size_index;
 	int16_t *map;
-	uintptr_t *marks;
+	uint8_t *marks;
 } BlockHeader;
 
 struct BottomIndex;

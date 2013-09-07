@@ -238,8 +238,13 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
-	int marks_size_words = BLOCK_SZ / header->size / 8 / sizeof(uintptr_t);
-	header->marks = calloc(marks_size_words > 0 ? marks_size_words : 1, sizeof(uintptr_t));
+	int marks_size_bytes = BLOCK_SZ / header->size / 8;
+	marks_size_bytes = marks_size_bytes > 0 ? marks_size_bytes : 1;
+
+	header->marks = malloc(marks_size_bytes);
+	check_mem(header->marks);
+
+	memset(header->marks, 0xFF, marks_size_bytes);
 
 	return header;
 error:
