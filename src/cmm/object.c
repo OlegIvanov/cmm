@@ -6,7 +6,7 @@ static inline int Object_validate(GC *gc, void *obj)
 	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj);
 
 	if(block_header) {
-		if(block_header->map[BLOCK((uintptr_t)header(obj)) / sizeof(uintptr_t)] == 0) {
+		if(block_header->map[BLOCK((uintptr_t)header(obj)) >> LOG_WORD_BYTES] == 0) {
 			return header(obj)->ref_count > 0;
 		}
 	}
