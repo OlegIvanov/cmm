@@ -45,7 +45,7 @@ char *test_gc_init_obj_map()
 		uint16_t offset = *(gc->obj_map + i * MAX_BLOCK_OFFSET_WORDS_SZ);
 		mu_assert(offset == 0, "Invalid offset value.");
 
-		offset = *(gc->obj_map + i * MAX_BLOCK_OFFSET_WORDS_SZ + MAX_BLOCK_OFFSET_WORDS_SZ - 1);
+		offset = *(gc->obj_map + (i + 1) * MAX_BLOCK_OFFSET_WORDS_SZ - 1);
 		uint16_t obj_max_offset = gc->size_map[i] / sizeof(uintptr_t) - 1;
 
 		mu_assert(offset == obj_max_offset, "Invalid offset value.");
