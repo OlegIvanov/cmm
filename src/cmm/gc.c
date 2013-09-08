@@ -224,6 +224,20 @@ error:
 	return NULL;
 }
 
+static void GC_set_marks(GC *gc, BlockHeader *header, int marks_size_bits)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(header, "Argument 'header' can't be NULL.");
+
+	int i = 0;
+	for(i = 0; i < marks_size_bits / 8; i++) {
+		header->marks[i] = UINT8_MAX;
+	}
+	header->marks[i] = UINT8_MAX >> (8 - marks_size_bits % 8);
+error:
+	return;
+}
+
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
@@ -236,11 +250,13 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
-	int marks_size_bytes = BLOCK_SZ / header->size / 8;
-	marks_size_bytes = marks_size_bytes > 0 ? marks_size_bytes : 1;
+	int marks_size_bits = BLOCK_SZ / header->size;
+	int marks_size_bytes = marks_size_bits / 8 > 0 ? marks_size_bits / 8 : 1;
 
 	header->marks = calloc(1, marks_size_bytes);
 	check_mem(header->marks);
+
+	GC_set_marks(gc, header, marks_size_bits);
 
 	return header;
 error:
