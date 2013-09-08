@@ -230,7 +230,7 @@ static void GC_set_marks(GC *gc, BlockHeader *header, int marks_size_bits)
 	check(header, "Argument 'header' can't be NULL.");
 
 	int i = 0;
-	int mark_size_bytes = marks_size_bits / 8;
+	int marks_size_bytes = marks_size_bits / 8;
 	int remain_bits = marks_size_bits % 8;
 
 	for(i = 0; i < marks_size_bytes; i++) {
