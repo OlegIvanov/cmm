@@ -74,6 +74,7 @@ int GC_get_size(GC *gc, size_t size);
 void GC_allocate_block(GC *gc, int n, uint16_t size_index);
 void GC_subdivide_block(GC *gc, void *block, uint16_t size_index);
 BottomIndex *GC_create_bottom_index(void *block);
+inline void GC_unset_mark(BlockHeader *block_header, uintptr_t object_header);
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index);
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr);
 
