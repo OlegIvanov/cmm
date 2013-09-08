@@ -245,7 +245,7 @@ error:
 
 inline void GC_unset_mark(BlockHeader *block_header, uintptr_t object_header)
 {
-	int unset_bit = block_header->map[BLOCK(object_header) / sizeof(uintptr_t)] + 1;
+	int unset_bit = block_header->map[BLOCK(object_header) / sizeof(uintptr_t)];
 }
 
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
@@ -261,8 +261,8 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
 	int marks_size_bits = BLOCK_SZ / header->size;
-	int marks_size_bytes = marks_size_bits / 8 > 0 ? marks_size_bits / 8 : 1;
-
+	int marks_size_bytes = marks_size_bits / 8 + (marks_size_bits % 8 > 0);
+	
 	header->marks = calloc(1, marks_size_bytes);
 	check_mem(header->marks);
 
