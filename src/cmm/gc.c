@@ -58,7 +58,7 @@ static int GC_init_obj_map(GC *gc)
 		object_size_words = gc->size_map[j] >> LOG_WORD_BYTES;
 
 		for(i = 0; i < MAX_BLOCK_OFFSET_WORDS_SZ; i++) {
-			*(gc->obj_map + j * MAX_BLOCK_OFFSET_WORDS_SZ + i) = i % object_size_words;
+			*(gc->obj_map + j * MAX_BLOCK_OFFSET_WORDS_SZ + i) = remainder(i, object_size_words);
 		}
 	}
 
@@ -231,7 +231,7 @@ static void GC_set_marks(GC *gc, BlockHeader *header, int marks_size_bits)
 
 	int i = 0;
 	int marks_size_bytes = marks_size_bits / 8;
-	int remain_bits = marks_size_bits % 8;
+	int remain_bits = remainder(marks_size_bits, 8);
 
 	for(i = 0; i < marks_size_bytes; i++) {
 		header->marks[i] = UINT8_MAX;
@@ -261,7 +261,7 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
 	int marks_size_bits = BLOCK_SZ / header->size;
-	int marks_size_bytes = marks_size_bits / 8 + (marks_size_bits % 8 > 0);
+	int marks_size_bytes = marks_size_bits / 8 + (remainder(marks_size_bits, 8) > 0);
 	
 	header->marks = calloc(1, marks_size_bytes);
 	check_mem(header->marks);

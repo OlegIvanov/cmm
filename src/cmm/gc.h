@@ -28,10 +28,13 @@
 
 #define MAX_BLOCK_OFFSET_WORDS_SZ	(BLOCK_SZ >> LOG_WORD_BYTES)
 
-#define	KEY(Ptr)					(Ptr >> (__WORDSIZE - LOG_KEY_SZ))
-#define	TOP(Ptr)					((Ptr << LOG_KEY_SZ) >> (__WORDSIZE - LOG_TOP_SZ))
-#define	BOTTOM(Ptr)					((Ptr << (LOG_KEY_SZ + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
-#define BLOCK(Ptr)					(Ptr & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
+#define	KEY(Ptr)					((Ptr) >> (__WORDSIZE - LOG_KEY_SZ))
+#define	TOP(Ptr)					(((Ptr) << LOG_KEY_SZ) >> (__WORDSIZE - LOG_TOP_SZ))
+#define	BOTTOM(Ptr)					(((Ptr) << (LOG_KEY_SZ + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
+#define BLOCK(Ptr)					((Ptr) & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
+
+// This only works if "b" is a power of two.
+#define remainder(a, b)				((a) & (b - 1))
 
 typedef struct BlockHeader {
 	uint32_t size;
