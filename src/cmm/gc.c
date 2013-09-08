@@ -246,6 +246,7 @@ error:
 inline void GC_unset_mark(BlockHeader *block_header, uintptr_t object_header)
 {
 	int unset_bit = block_header->map[BLOCK(object_header) >> LOG_WORD_BYTES];
+	block_header->marks[unset_bit / 8] |= 1U << remainder(unset_bit, 8);
 }
 
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
