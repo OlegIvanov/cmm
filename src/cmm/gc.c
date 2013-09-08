@@ -160,20 +160,18 @@ void GC_allocate_block(GC *gc, int n, uint16_t size_index)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	void *block = NULL;
-
 	int rc = posix_memalign(&block, BLOCK_SZ, n * BLOCK_SZ);
 	check(rc == 0, "Allocating block error occured.");
 
 	GC_subdivide_block(gc, block, size_index);
-
-	BottomIndex *bi = NULL;
+	
 	uintptr_t top = TOP((uintptr_t)block);
+	BottomIndex *bi = gc->top_index[top];
 
-	if(gc->top_index[top] == gc->all_nils) {
+	if(bi == gc->all_nils) {
 		bi = GC_create_bottom_index(block);
 		gc->top_index[top] = bi;
 	} else {
-		bi = gc->top_index[top];
 		while(bi->key != KEY((uintptr_t)block)) {
 			bi = bi->hash_link;
 			if(bi == NULL) {
