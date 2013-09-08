@@ -49,6 +49,8 @@ void Object_release(GC *gc, void *obj)
 				Object_release(gc, *interior);
 				interior++;
 			}
+
+			GC_unset_mark(block_header, (uintptr_t)header(obj));
 		}
 	}
 }

@@ -230,12 +230,22 @@ static void GC_set_marks(GC *gc, BlockHeader *header, int marks_size_bits)
 	check(header, "Argument 'header' can't be NULL.");
 
 	int i = 0;
-	for(i = 0; i < marks_size_bits / 8; i++) {
+	int mark_size_bytes = marks_size_bits / 8;
+	int remain_bits = marks_size_bits % 8;
+
+	for(i = 0; i < marks_size_bytes; i++) {
 		header->marks[i] = UINT8_MAX;
 	}
-	header->marks[i] = UINT8_MAX >> (8 - marks_size_bits % 8);
+	if(remain_bits > 0) {
+		header->marks[i] = UINT8_MAX >> (8 - remain_bits);
+	}
 error:
 	return;
+}
+
+inline void GC_unset_mark(BlockHeader *block_header, uintptr_t object_header)
+{
+	int unset_bit = block_header->map[BLOCK(object_header) / sizeof(uintptr_t)] + 1;
 }
 
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
