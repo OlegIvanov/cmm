@@ -38,7 +38,7 @@ static int GC_init_freelist(GC *gc)
 
 	int i = 0;
 	for(i = 0; i < SIZE_SZ; i++) {
-		gc->freelist[i] = List_create();
+		gc->freelists[i] = List_create();
 	}
 
 	return 0;
@@ -87,6 +87,8 @@ GC *GC_create()
 	check_mem(gc->obj_map);
 
 	gc->arp_stack = List_create();
+	
+	gc->block_headers = List_create();
 
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
@@ -96,6 +98,7 @@ GC *GC_create()
 	return gc;
 error:
 	if(gc) {
+		List_destroy(gc->block_headers);
 		List_destroy(gc->arp_stack);
 		free(gc->obj_map);
 		if(gc->all_nils) {
@@ -118,6 +121,23 @@ int GC_get_size(GC *gc, size_t size)
 			return i;
 		}
 	}
+error:
+	return -1;
+}
+
+static int GC_update_heap(GC *gc, void *block, size_t size)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(block, "Argument 'block' can't be NULL.");
+
+	if(block < gc->heap.low) {
+		gc->heap.low = block;
+	}
+	if(block + size > gc->heap.high) {
+		gc->heap.high = block + size;
+	}
+
+	return 0;
 error:
 	return -1;
 }
@@ -150,6 +170,9 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 
 	BlockHeader *header = GC_create_block_header(gc, size_index);
 	bi->index[BOTTOM(block)] = header;
+
+	GC_update_heap(gc, block, blocks_number * BLOCK_SZ);
+	List_push(gc->block_headers, header);
 error:
 	return;
 }
@@ -159,7 +182,7 @@ void GC_subdivide_block(GC *gc, void *block, uint16_t size_index)
 	check(gc, "Argument 'gc' can't be NULL.");
 	check(block, "Argument 'block' can't be NULL.");
 
-	List *freelist = gc->freelist[size_index];
+	List *freelist = gc->freelists[size_index];
 	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
 
 	uint32_t i = 0;
@@ -218,10 +241,10 @@ inline void GC_unset_mark(BlockHeader *block_header, void *object_header)
 
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 {
-	check(gc, "Argument 'gc' can't be NULL.");
-
 	BlockHeader *header = calloc(1, sizeof(BlockHeader));
 	check_mem(header);
+
+	check(gc, "Argument 'gc' can't be NULL.");
 
 	header->size = gc->size_map[size_index];
 	header->size_index = size_index;
@@ -247,6 +270,8 @@ error:
 
 inline BlockHeader *GC_get_block_header(GC *gc, void *ptr)
 {
+	if(ptr < gc->heap.low || ptr > gc->heap.high) return NULL;
+
 	BottomIndex *bi = gc->top_index[TOP(ptr)];
 
 	while(bi->key != KEY(ptr)) {

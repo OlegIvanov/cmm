@@ -21,7 +21,7 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	Object_release(gc, *obj);
 
 	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
-	List *freelist = gc->freelist[size_index];
+	List *freelist = gc->freelists[size_index];
 
 	if(List_count(freelist) == 0) {
 		GC_allocate_block(gc, 1, size_index);

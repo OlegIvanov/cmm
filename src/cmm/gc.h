@@ -53,12 +53,19 @@ typedef struct BottomIndex {
 	struct BottomIndex *hash_link;
 } BottomIndex;
 
+typedef struct Heap {
+	void *low;
+	void *high;
+} Heap;
+
 typedef struct GC {
 	BottomIndex **top_index;
 	BottomIndex *all_nils;
 	uint32_t size_map[SIZE_SZ];
 	int16_t *obj_map;
-	List *freelist[SIZE_SZ];
+	Heap heap;
+	List *block_headers;
+	List *freelists[SIZE_SZ];
 	List *arp_stack;
 } GC;
 
