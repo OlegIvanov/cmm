@@ -67,38 +67,6 @@ error:
 	return -1;
 }
 
-#define BUF_SIZE 1000
-
-static int GC_init_heap_range(GC *gc)
-{
-	check(gc, "Argument 'gc' can't be NULL.");
-
-	char maps_filename[BUF_SIZE];
-	char file_line[BUF_SIZE];
-	const char *heap = "[heap]";
-
-	pid_t pid = getpid();
-
-	sprintf(maps_filename, "/proc/%d/maps", pid);
-	
-	FILE *maps_file = fopen(maps_filename, "r");
-	check(maps_file, "maps file has't been opened");
-
-	while(fgets(file_line, BUF_SIZE, maps_file) != NULL) {
-		if(strstr(file_line, heap) != NULL) {
-			break;
-		}
-	}
-
-	sscanf(file_line, "%p-%p", &gc->heap_range.low, &gc->heap_range.high);
-
-	fclose(maps_file);
-
-	return 0;
-error:
-	return -1;
-}
-
 __attribute__((constructor)) void GC_init()
 {
 	__GC__ = GC_create();
@@ -123,7 +91,6 @@ GC *GC_create()
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
 	GC_init_obj_map(gc);
-	GC_init_heap_range(gc);
 	GC_init_freelist(gc);
 
 	return gc;
@@ -280,9 +247,6 @@ error:
 
 inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
 {
-	if(ptr < (uintptr_t)gc->heap_range.low
-	|| ptr > (uintptr_t)gc->heap_range.high) return NULL;
-
 	BottomIndex *bi = gc->top_index[TOP(ptr)];
 
 	while(bi->key != KEY(ptr)) {
