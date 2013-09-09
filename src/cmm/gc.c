@@ -67,6 +67,18 @@ error:
 	return -1;
 }
 
+static int GC_init_heap(GC *gc)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	gc->heap.low = (void *)UINTPTR_MAX;
+	gc->heap.high = NULL;
+
+	return 0;
+error:
+	return -1;
+}
+
 __attribute__((constructor)) void GC_init()
 {
 	__GC__ = GC_create();
@@ -94,6 +106,7 @@ GC *GC_create()
 	GC_init_size_map(gc);
 	GC_init_obj_map(gc);
 	GC_init_freelist(gc);
+	GC_init_heap(gc);
 
 	return gc;
 error:
