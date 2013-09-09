@@ -135,14 +135,14 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 
 	GC_subdivide_block(gc, block, size_index);
 	
-	uintptr_t top = TOP((uintptr_t)block);
+	uintptr_t top = TOP(block);
 	BottomIndex *bi = gc->top_index[top];
 
 	if(bi == gc->all_nils) {
 		bi = GC_create_bottom_index(block);
 		gc->top_index[top] = bi;
 	} else {
-		while(bi->key != KEY((uintptr_t)block)) {
+		while(bi->key != KEY(block)) {
 			bi = bi->hash_link;
 			if(bi == NULL) {
 				bi = GC_create_bottom_index(block);
@@ -152,7 +152,7 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 	}
 
 	BlockHeader *header = GC_create_block_header(gc, size_index);
-	bi->index[BOTTOM((uintptr_t)block)] = header;
+	bi->index[BOTTOM(block)] = header;
 error:
 	return;
 }
@@ -183,7 +183,7 @@ BottomIndex *GC_create_bottom_index(void *block)
 	bi->index = calloc(BOTTOM_SZ, sizeof(BlockHeader *));
 	check_mem(bi->index);
 	
-	bi->key = KEY((uintptr_t)block);
+	bi->key = KEY(block);
 
 	return bi;
 error:
@@ -213,7 +213,7 @@ error:
 	return;
 }
 
-inline void GC_unset_mark(BlockHeader *block_header, uintptr_t object_header)
+inline void GC_unset_mark(BlockHeader *block_header, void *object_header)
 {
 	int unset_bit = block_header->map[BLOCK(object_header) >> LOG_WORD_BYTES];
 	block_header->marks[unset_bit / 8] &= ~(1U << remainder(unset_bit, 8));
@@ -248,7 +248,7 @@ error:
 	return NULL;
 }
 
-inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr)
+inline BlockHeader *GC_get_block_header(GC *gc, void *ptr)
 {
 	BottomIndex *bi = gc->top_index[TOP(ptr)];
 

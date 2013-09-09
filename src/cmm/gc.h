@@ -28,10 +28,10 @@
 
 #define MAX_BLOCK_OFFSET_WORDS_SZ	(BLOCK_SZ >> LOG_WORD_BYTES)
 
-#define	KEY(Ptr)					((Ptr) >> (__WORDSIZE - LOG_KEY_SZ))
-#define	TOP(Ptr)					(((Ptr) << LOG_KEY_SZ) >> (__WORDSIZE - LOG_TOP_SZ))
-#define	BOTTOM(Ptr)					(((Ptr) << (LOG_KEY_SZ + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
-#define BLOCK(Ptr)					((Ptr) & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
+#define	KEY(Ptr)					((uintptr_t)(Ptr) >> (__WORDSIZE - LOG_KEY_SZ))
+#define	TOP(Ptr)					(((uintptr_t)(Ptr) << LOG_KEY_SZ) >> (__WORDSIZE - LOG_TOP_SZ))
+#define	BOTTOM(Ptr)					(((uintptr_t)(Ptr) << (LOG_KEY_SZ + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
+#define BLOCK(Ptr)					((uintptr_t)(Ptr) & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
 
 // This only works if "b" is a power of two.
 #define remainder(a, b)				((a) & (b - 1))
@@ -68,8 +68,8 @@ int GC_get_size(GC *gc, size_t size);
 void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index);
 void GC_subdivide_block(GC *gc, void *block, uint16_t size_index);
 BottomIndex *GC_create_bottom_index(void *block);
-inline void GC_unset_mark(BlockHeader *block_header, uintptr_t object_header);
+inline void GC_unset_mark(BlockHeader *block_header, void *object_header);
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index);
-inline BlockHeader *GC_get_block_header(GC *gc, uintptr_t ptr);
+inline BlockHeader *GC_get_block_header(GC *gc, void *ptr);
 
 #endif

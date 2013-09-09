@@ -12,8 +12,8 @@ typedef struct ObjectHeader {
 	uintptr_t ref_count;
 } ObjectHeader;
 
-#define header(obj)				((ObjectHeader *)obj - 1)
-#define object(hdr)				(hdr + 1)
+#define header(obj)				((ObjectHeader *)(obj) - 1)
+#define object(hdr)				((hdr) + 1)
 #define retain(hdr)				(hdr)->ref_count++
 #define release(hdr)			(hdr)->ref_count--
 

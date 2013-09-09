@@ -3,10 +3,10 @@
 
 static inline int Object_validate(GC *gc, void *obj)
 {
-	BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)obj);
+	BlockHeader *block_header = GC_get_block_header(gc, obj);
 
 	if(block_header) {
-		if(block_header->map[BLOCK((uintptr_t)header(obj)) >> LOG_WORD_BYTES] == 0) {
+		if(block_header->map[BLOCK(header(obj)) >> LOG_WORD_BYTES] == 0) {
 			return header(obj)->ref_count > 0;
 		}
 	}
@@ -41,7 +41,7 @@ void Object_release(GC *gc, void *obj)
 		release(header(obj));
 
 		if(header(obj)->ref_count == 0) {
-			BlockHeader *block_header = GC_get_block_header(gc, (uintptr_t)header(obj));
+			BlockHeader *block_header = GC_get_block_header(gc, header(obj));
 			
 			void **interior = obj;
 			void **objend = obj + block_header->size - sizeof(ObjectHeader);
@@ -50,7 +50,7 @@ void Object_release(GC *gc, void *obj)
 				interior++;
 			}
 
-			GC_unset_mark(block_header, (uintptr_t)header(obj));
+			GC_unset_mark(block_header, header(obj));
 		}
 	}
 }
