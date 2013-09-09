@@ -64,7 +64,6 @@ typedef struct GC {
 
 extern GC *__GC__;
 
-inline uintptr_t GC_get_block(uintptr_t ptr);
 GC *GC_create();
 int GC_get_size(GC *gc, size_t size);
 void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index);
