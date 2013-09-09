@@ -100,7 +100,9 @@ GC *GC_create()
 
 	gc->arp_stack = List_create();
 	
-	gc->block_headers = List_create();
+	gc->block_header = List_create();
+
+	gc->block_freelist = List_create();
 
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
@@ -111,7 +113,7 @@ GC *GC_create()
 	return gc;
 error:
 	if(gc) {
-		List_destroy(gc->block_headers);
+		List_destroy(gc->block_header);
 		List_destroy(gc->arp_stack);
 		free(gc->obj_map);
 		if(gc->all_nils) {
@@ -185,7 +187,7 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 	bi->index[BOTTOM(block)] = header;
 
 	GC_update_heap(gc, block, blocks_number * BLOCK_SZ);
-	List_push(gc->block_headers, header);
+	List_push(gc->block_header, header);
 error:
 	return;
 }

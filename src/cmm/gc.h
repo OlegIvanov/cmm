@@ -64,8 +64,9 @@ typedef struct GC {
 	uint32_t size_map[SIZE_SZ];
 	int16_t *obj_map;
 	Heap heap;
-	List *block_headers;
+	List *block_header;
 	List *freelists[SIZE_SZ];
+	List *block_freelist;
 	List *arp_stack;
 } GC;
 
