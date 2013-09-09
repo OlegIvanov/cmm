@@ -127,20 +127,16 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	void *block = NULL;
-
 	int rc = posix_memalign(&block, BLOCK_SZ, blocks_number * BLOCK_SZ);
 	check(rc == 0, "Allocating block error occured.");
 
 	memset(block, 0, blocks_number * BLOCK_SZ);
-
 	GC_subdivide_block(gc, block, size_index);
 	
-	uintptr_t top = TOP(block);
-	BottomIndex *bi = gc->top_index[top];
-
+	BottomIndex *bi = gc->top_index[TOP(block)];
 	if(bi == gc->all_nils) {
 		bi = GC_create_bottom_index(block);
-		gc->top_index[top] = bi;
+		gc->top_index[TOP(block)] = bi;
 	} else {
 		while(bi->key != KEY(block)) {
 			bi = bi->hash_link;
@@ -150,7 +146,6 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 			}
 		}
 	}
-
 	BlockHeader *header = GC_create_block_header(gc, size_index);
 	bi->index[BOTTOM(block)] = header;
 error:
