@@ -122,13 +122,16 @@ error:
 	return -1;
 }
 
-void GC_allocate_block(GC *gc, int n, uint16_t size_index)
+void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	void *block = NULL;
-	int rc = posix_memalign(&block, BLOCK_SZ, n * BLOCK_SZ);
+
+	int rc = posix_memalign(&block, BLOCK_SZ, blocks_number * BLOCK_SZ);
 	check(rc == 0, "Allocating block error occured.");
+
+	memset(block, 0, blocks_number * BLOCK_SZ);
 
 	GC_subdivide_block(gc, block, size_index);
 	
