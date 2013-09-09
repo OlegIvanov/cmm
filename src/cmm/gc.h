@@ -28,10 +28,12 @@
 
 #define MAX_BLOCK_OFFSET_WORDS_SZ	(BLOCK_SZ >> LOG_WORD_BYTES)
 
-#define	KEY(Ptr)					((uintptr_t)(Ptr) >> (__WORDSIZE - LOG_KEY_SZ))
-#define	TOP(Ptr)					(((uintptr_t)(Ptr) << LOG_KEY_SZ) >> (__WORDSIZE - LOG_TOP_SZ))
-#define	BOTTOM(Ptr)					(((uintptr_t)(Ptr) << (LOG_KEY_SZ + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
-#define BLOCK(Ptr)					((uintptr_t)(Ptr) & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
+#define intcast(ptr)				((uintptr_t)(ptr))
+
+#define	KEY(Ptr)					(intcast(Ptr) >> (__WORDSIZE - LOG_KEY_SZ))
+#define	TOP(Ptr)					((intcast(Ptr) << LOG_KEY_SZ) >> (__WORDSIZE - LOG_TOP_SZ))
+#define	BOTTOM(Ptr)					((intcast(Ptr) << (LOG_KEY_SZ + LOG_TOP_SZ)) >> (__WORDSIZE - LOG_BOTTOM_SZ))
+#define BLOCK(Ptr)					(intcast(Ptr) & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
 
 // This only works if "b" is a power of two.
 #define remainder(a, b)				((a) & (b - 1))
