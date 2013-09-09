@@ -99,9 +99,7 @@ GC *GC_create()
 	check_mem(gc->obj_map);
 
 	gc->arp_stack = List_create();
-	
 	gc->block_header = List_create();
-
 	gc->block_freelist = List_create();
 
 	GC_init_top_index(gc);
@@ -113,6 +111,7 @@ GC *GC_create()
 	return gc;
 error:
 	if(gc) {
+		List_destroy(gc->block_freelist);
 		List_destroy(gc->block_header);
 		List_destroy(gc->arp_stack);
 		free(gc->obj_map);
