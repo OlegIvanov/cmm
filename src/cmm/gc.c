@@ -79,6 +79,139 @@ error:
 	return -1;
 }
 
+static int GC_get_marks_size_bytes(int marks_size_bits)
+{
+	return marks_size_bits / 8 + (remainder(marks_size_bits, 8) > 0);
+}
+
+static int GC_set_marks(GC *gc, BlockHeader *header, int marks_size_bits)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(header, "Argument 'header' can't be NULL.");
+
+	int i = 0;
+	int marks_size_bytes = marks_size_bits / 8;
+	int remain_bits = remainder(marks_size_bits, 8);
+
+	for(i = 0; i < marks_size_bytes; i++) {
+		header->marks[i] = UINT8_MAX;
+	}
+	if(remain_bits > 0) {
+		header->marks[i] = UINT8_MAX >> (8 - remain_bits);
+	}
+	
+	return 0;
+error:
+	return -1;
+}
+
+static BlockHeader *GC_create_block_header(GC *gc, void *block, uint16_t size_index)
+{
+	BlockHeader *header = calloc(1, sizeof(BlockHeader));
+	check_mem(header);
+
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(block, "Argument 'block' can't be NULL.");
+
+	header->size = gc->size_map[size_index];
+	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
+	header->block = block;
+
+	int marks_size_bits = BLOCK_SZ / header->size;
+	
+	header->marks = calloc(1, GC_get_marks_size_bytes(marks_size_bits));
+	check_mem(header->marks);
+
+	GC_set_marks(gc, header, marks_size_bits);
+
+	return header;
+error:
+	if(header) {
+		free(header->marks);
+	}
+	free(header);
+	return NULL;
+}
+
+static int GC_update_heap(GC *gc, void *block, size_t size)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(block, "Argument 'block' can't be NULL.");
+
+	if(block < gc->heap.low) {
+		gc->heap.low = block;
+	}
+	if(block + size > gc->heap.high) {
+		gc->heap.high = block + size;
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
+static int GC_subdivide_block(GC *gc, void *block, uint16_t size_index)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(block, "Argument 'block' can't be NULL.");
+
+	List *freelist = gc->freelists[size_index];
+	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
+
+	uint32_t i = 0;
+	uint32_t object_size_bytes = gc->size_map[size_index];
+
+	for(i = 0; i < BLOCK_SZ / object_size_bytes; i++) {
+		List_push(freelist, block + i * object_size_bytes);
+	}
+	
+	return 0;
+error:
+	return -1;
+}
+
+static inline int GC_check_marks_if_zero(uint8_t *marks, int marks_length)
+{
+	int i = 0;
+	for(i = 0; i < marks_length; i++) {
+		if(marks[i] != 0) return 0;
+	}
+
+	return 1;
+}
+
+static int GC_remove_unused_blocks(GC *gc, List *unused_blocks)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	LIST_FOREACH(unused_blocks, first, next, cur) {
+		List_remove(gc->block_list, cur->value);
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
+static BottomIndex *GC_create_bottom_index(void *block)
+{
+	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
+	check_mem(bi);
+
+	bi->index = calloc(BOTTOM_SZ, sizeof(BlockHeader *));
+	check_mem(bi->index);
+	
+	bi->key = KEY(block);
+
+	return bi;
+error:
+	if(bi) {
+		free(bi->index);
+	}	
+	free(bi);
+	return NULL;
+}
+
 __attribute__((constructor)) void GC_init()
 {
 	__GC__ = GC_create();
@@ -139,24 +272,7 @@ error:
 	return -1;
 }
 
-static int GC_update_heap(GC *gc, void *block, size_t size)
-{
-	check(gc, "Argument 'gc' can't be NULL.");
-	check(block, "Argument 'block' can't be NULL.");
-
-	if(block < gc->heap.low) {
-		gc->heap.low = block;
-	}
-	if(block + size > gc->heap.high) {
-		gc->heap.high = block + size;
-	}
-
-	return 0;
-error:
-	return -1;
-}
-
-void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
+int GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
 
@@ -182,106 +298,21 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 		}
 	}
 
-	BlockHeader *header = GC_create_block_header(gc, size_index);
+	BlockHeader *header = GC_create_block_header(gc, block, size_index);
 	bi->index[BOTTOM(block)] = header;
 
 	GC_update_heap(gc, block, blocks_number * BLOCK_SZ);
 	List_push(gc->block_list, header);
-error:
-	return;
-}
-
-void GC_subdivide_block(GC *gc, void *block, uint16_t size_index)
-{
-	check(gc, "Argument 'gc' can't be NULL.");
-	check(block, "Argument 'block' can't be NULL.");
-
-	List *freelist = gc->freelists[size_index];
-	check(List_count(freelist) == 0, "Free list must be empty before subdividing.");
-
-	uint32_t i = 0;
-	uint32_t object_size_bytes = gc->size_map[size_index];
-
-	for(i = 0; i < BLOCK_SZ / object_size_bytes; i++) {
-		List_push(freelist, block + i * object_size_bytes);
-	}
-error:
-	return;
-}
-
-BottomIndex *GC_create_bottom_index(void *block)
-{
-	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
-	check_mem(bi);
-
-	bi->index = calloc(BOTTOM_SZ, sizeof(BlockHeader *));
-	check_mem(bi->index);
 	
-	bi->key = KEY(block);
-
-	return bi;
+	return 0;
 error:
-	if(bi) {
-		free(bi->index);
-	}	
-	free(bi);
-	return NULL;
-}
-
-static void GC_set_marks(GC *gc, BlockHeader *header, int marks_size_bits)
-{
-	check(gc, "Argument 'gc' can't be NULL.");
-	check(header, "Argument 'header' can't be NULL.");
-
-	int i = 0;
-	int marks_size_bytes = marks_size_bits / 8;
-	int remain_bits = remainder(marks_size_bits, 8);
-
-	for(i = 0; i < marks_size_bytes; i++) {
-		header->marks[i] = UINT8_MAX;
-	}
-	if(remain_bits > 0) {
-		header->marks[i] = UINT8_MAX >> (8 - remain_bits);
-	}
-error:
-	return;
+	return -1;
 }
 
 inline void GC_unset_mark(BlockHeader *blkhdr, void *objhdr)
 {
 	int unset_bit = BLOCK(objhdr) / blkhdr->size;
 	blkhdr->marks[unset_bit / 8] &= ~(1U << remainder(unset_bit, 8));
-}
-
-static int GC_get_marks_size_bytes(int marks_size_bits)
-{
-	return marks_size_bits / 8 + (remainder(marks_size_bits, 8) > 0);
-}
-
-BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
-{
-	BlockHeader *header = calloc(1, sizeof(BlockHeader));
-	check_mem(header);
-
-	check(gc, "Argument 'gc' can't be NULL.");
-
-	header->size = gc->size_map[size_index];
-	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
-
-	int marks_size_bits = BLOCK_SZ / header->size;
-	
-	header->marks = calloc(1, GC_get_marks_size_bytes(marks_size_bits));
-	check_mem(header->marks);
-
-	GC_set_marks(gc, header, marks_size_bits);
-
-	return header;
-error:
-	if(header) {
-		free(header->marks);
-	}
-	free(header);
-	return NULL;
 }
 
 inline BlockHeader *GC_get_block_header(GC *gc, void *ptr)
@@ -296,29 +327,6 @@ inline BlockHeader *GC_get_block_header(GC *gc, void *ptr)
 	}
 
 	return bi->index[BOTTOM(ptr)];
-}
-
-static inline int GC_check_marks_if_zero(uint8_t *marks, int marks_length)
-{
-	int i = 0;
-	for(i = 0; i < marks_length; i++) {
-		if(marks[i] != 0) return 0;
-	}
-
-	return 1;
-}
-
-static int GC_remove_unused_blocks(GC *gc, List *unused_blocks)
-{
-	check(gc, "Argument 'gc' can't be NULL.");
-
-	LIST_FOREACH(unused_blocks, first, next, cur) {
-		List_remove(gc->block_list, cur->value);
-	}
-
-	return 0;
-error:
-	return -1;
 }
 
 int GC_sweep(GC *gc)
@@ -345,6 +353,31 @@ error:
 	return -1;
 }
 
-void GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index)
+int GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index)
 {
+	check(gc, "Argument 'gc' can't be NULL.");
+	check(blkhdr, "Argument 'blkhdr' can't be NULL.");
+
+	memset(blkhdr->block, 0, BLOCK_SZ);
+	GC_subdivide_block(gc, blkhdr->block, size_index);
+
+	blkhdr->size = gc->size_map[size_index];
+	blkhdr->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
+
+	check(blkhdr->marks, "Marks shouldn't be NULL.");
+	free(blkhdr->marks);
+
+	int marks_size_bits = BLOCK_SZ / blkhdr->size;
+
+	blkhdr->marks = calloc(1, GC_get_marks_size_bytes(marks_size_bits));
+	check_mem(blkhdr->marks);
+
+	GC_set_marks(gc, blkhdr, marks_size_bits);
+
+	return 0;
+error:
+	if(blkhdr) {
+		free(blkhdr->marks);
+	}
+	return -1;
 }

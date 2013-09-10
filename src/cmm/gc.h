@@ -41,6 +41,7 @@
 typedef struct BlockHeader {
 	uint32_t size;
 	int16_t *map;
+	void *block;
 	uint8_t *marks;
 } BlockHeader;
 
@@ -73,13 +74,10 @@ extern GC *__GC__;
 
 GC *GC_create();
 int GC_get_size(GC *gc, size_t size);
-void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index);
-void GC_subdivide_block(GC *gc, void *block, uint16_t size_index);
-BottomIndex *GC_create_bottom_index(void *block);
+int GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index);
 inline void GC_unset_mark(BlockHeader *blkhdr, void *objhdr);
-BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index);
 inline BlockHeader *GC_get_block_header(GC *gc, void *ptr);
 int GC_sweep(GC *gc);
-void GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index);
+int GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index);
 
 #endif
