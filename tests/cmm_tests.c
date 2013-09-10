@@ -54,6 +54,23 @@ char *test_gc_init_obj_map()
 	return NULL;
 }
 
+char *test_gc_create_block_header()
+{
+	BlockHeader *hdr = GC_create_block_header(gc, 1);
+
+	mu_assert(hdr->size == 32, "Invalid size.");
+
+	int i = 0;
+	for(i = 0; i < BLOCK_SZ / hdr->size / 8; i++) {
+		mu_assert(hdr->marks[i] == UINT8_MAX, "Invalid mark value.");
+	}
+
+	free(hdr->marks);
+	free(hdr);
+
+	return NULL;
+}
+
 char *test_release_1()
 {
 	C *c = NULL;
@@ -241,6 +258,7 @@ char *all_tests() {
 
 	mu_run_test(test_gc_init_size_map);
 	mu_run_test(test_gc_init_obj_map);
+	mu_run_test(test_gc_create_block_header);
 
 	mu_run_test(test_release_1);
 	mu_run_test(test_release_2);

@@ -266,8 +266,6 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	header->size = gc->size_map[size_index];
-	header->size_index = size_index;
-
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
 	int marks_size_bits = BLOCK_SZ / header->size;
