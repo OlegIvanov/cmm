@@ -374,6 +374,8 @@ int GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index)
 
 	GC_set_marks(gc, blkhdr, marks_size_bits);
 
+	List_push(gc->block_list, blkhdr);
+
 	return 0;
 error:
 	if(blkhdr) {
