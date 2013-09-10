@@ -328,11 +328,11 @@ int GC_sweep(GC *gc)
 	List *unused_blocks = List_create();
 
 	LIST_FOREACH(gc->block_list, first, next, cur) {
-		BlockHeader *header = cur->value;
-		int marks_length = GC_get_marks_size_bytes(BLOCK_SZ / header->size);
+		BlockHeader *blkhdr = cur->value;
+		int marks_length = GC_get_marks_size_bytes(BLOCK_SZ / blkhdr->size);
 
-		if(GC_check_marks_if_zero(header->marks, marks_length)) {
-			List_push(gc->block_freelist, header);
+		if(GC_check_marks_if_zero(blkhdr->marks, marks_length)) {
+			List_push(gc->block_freelist, blkhdr);
 			List_push(unused_blocks, cur);
 		}
 	}
