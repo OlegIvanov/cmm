@@ -100,7 +100,7 @@ GC *GC_create()
 
 	gc->arp_stack = List_create();
 	gc->block_list = List_create();
-	gc->block_freelist = List_create();
+	gc->blkfreelist = List_create();
 
 	GC_init_top_index(gc);
 	GC_init_size_map(gc);
@@ -111,7 +111,7 @@ GC *GC_create()
 	return gc;
 error:
 	if(gc) {
-		List_destroy(gc->block_freelist);
+		List_destroy(gc->blkfreelist);
 		List_destroy(gc->block_list);
 		List_destroy(gc->arp_stack);
 		free(gc->obj_map);
@@ -332,7 +332,7 @@ int GC_sweep(GC *gc)
 		int marks_length = GC_get_marks_size_bytes(BLOCK_SZ / blkhdr->size);
 
 		if(GC_check_marks_if_zero(blkhdr->marks, marks_length)) {
-			List_push(gc->block_freelist, blkhdr);
+			List_push(gc->blkfreelist, blkhdr);
 			List_push(unused_blocks, cur);
 		}
 	}
