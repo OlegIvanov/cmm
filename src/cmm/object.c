@@ -24,21 +24,16 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	int size_index = GC_get_size(gc, type_size + sizeof(ObjectHeader));
 	List *freelist = gc->freelists[size_index];
 
-	BlockHeader *freeblock = NULL;
-
 	if(List_count(freelist) == 0) {
-		freeblock = List_pop(gc->block_freelist);
-
-		if(freeblock == NULL) {
+		if(List_last(gc->blkfreelist) == NULL) {
 			GC_sweep(gc);
-		}
-
-		freeblock = List_pop(gc->block_freelist);
-
-		if(freeblock == NULL) {
-			GC_allocate_block(gc, 1, size_index);
+			if(List_last(gc->blkfreelist) == NULL) {
+				GC_allocate_block(gc, 1, size_index);
+			} else {
+				GC_recycle_block(gc, List_pop(gc->blkfreelist), size_index);
+			}
 		} else {
-			GC_recycle_block(gc, freeblock, size_index);
+			GC_recycle_block(gc, List_pop(gc->blkfreelist), size_index);
 		}
 	}
 
