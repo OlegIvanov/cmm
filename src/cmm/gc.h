@@ -64,7 +64,7 @@ typedef struct GC {
 	uint32_t size_map[SIZE_SZ];
 	int16_t *obj_map;
 	Heap heap;
-	List *block_header;
+	List *block_list;
 	List *freelists[SIZE_SZ];
 	List *block_freelist;
 	List *arp_stack;
@@ -80,5 +80,6 @@ BottomIndex *GC_create_bottom_index(void *block);
 inline void GC_unset_mark(BlockHeader *block_header, void *object_header);
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index);
 inline BlockHeader *GC_get_block_header(GC *gc, void *ptr);
+int GC_sweep(GC *gc);
 
 #endif

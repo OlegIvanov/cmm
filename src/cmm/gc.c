@@ -99,7 +99,7 @@ GC *GC_create()
 	check_mem(gc->obj_map);
 
 	gc->arp_stack = List_create();
-	gc->block_header = List_create();
+	gc->block_list = List_create();
 	gc->block_freelist = List_create();
 
 	GC_init_top_index(gc);
@@ -112,7 +112,7 @@ GC *GC_create()
 error:
 	if(gc) {
 		List_destroy(gc->block_freelist);
-		List_destroy(gc->block_header);
+		List_destroy(gc->block_list);
 		List_destroy(gc->arp_stack);
 		free(gc->obj_map);
 		if(gc->all_nils) {
@@ -186,7 +186,7 @@ void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 	bi->index[BOTTOM(block)] = header;
 
 	GC_update_heap(gc, block, blocks_number * BLOCK_SZ);
-	List_push(gc->block_header, header);
+	List_push(gc->block_list, header);
 error:
 	return;
 }
@@ -253,6 +253,11 @@ inline void GC_unset_mark(BlockHeader *block_header, void *object_header)
 	block_header->marks[unset_bit / 8] &= ~(1U << remainder(unset_bit, 8));
 }
 
+static int GC_get_marks_size_bytes(int marks_size_bits)
+{
+	return marks_size_bits / 8 + (remainder(marks_size_bits, 8) > 0);
+}
+
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 {
 	BlockHeader *header = calloc(1, sizeof(BlockHeader));
@@ -266,9 +271,8 @@ BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index)
 	header->map = gc->obj_map + size_index * MAX_BLOCK_OFFSET_WORDS_SZ;
 
 	int marks_size_bits = BLOCK_SZ / header->size;
-	int marks_size_bytes = marks_size_bits / 8 + (remainder(marks_size_bits, 8) > 0);
 	
-	header->marks = calloc(1, marks_size_bytes);
+	header->marks = calloc(1, GC_get_marks_size_bytes(marks_size_bits));
 	check_mem(header->marks);
 
 	GC_set_marks(gc, header, marks_size_bits);
@@ -294,4 +298,32 @@ inline BlockHeader *GC_get_block_header(GC *gc, void *ptr)
 	}
 
 	return bi->index[BOTTOM(ptr)];
+}
+
+static inline int GC_check_marks_if_zero(uint8_t *marks, int marks_length)
+{
+	int i = 0;
+	for(i = 0; i < marks_length; i++) {
+		if(marks[i] != 0) return 0;
+	}
+
+	return 1;
+}
+
+int GC_sweep(GC *gc)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	LIST_FOREACH(gc->block_list, first, next, cur) {
+		BlockHeader *header = cur->value;
+		int marks_length = GC_get_marks_size_bytes(BLOCK_SZ / header->size);
+
+		if(GC_check_marks_if_zero(header->marks, marks_length)) {
+			List_push(gc->block_freelist, header);
+		}
+	}
+
+	return 0;
+error:
+	return -1;
 }

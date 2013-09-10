@@ -50,4 +50,5 @@ void ARPool_release_callback(ARPool **arp)
 {
 	*arp = NULL;
 	ARPool_release(__GC__);
+	GC_sweep(__GC__);
 }

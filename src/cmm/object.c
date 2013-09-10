@@ -42,6 +42,7 @@ void Object_release(GC *gc, void *obj)
 
 		if(header(obj)->ref_count == 0) {
 			BlockHeader *block_header = GC_get_block_header(gc, header(obj));
+			GC_unset_mark(block_header, header(obj));
 			
 			void **interior = obj;
 			void **objend = obj + block_header->size - sizeof(ObjectHeader);
@@ -49,8 +50,6 @@ void Object_release(GC *gc, void *obj)
 				Object_release(gc, *interior);
 				interior++;
 			}
-
-			GC_unset_mark(block_header, header(obj));
 		}
 	}
 }
