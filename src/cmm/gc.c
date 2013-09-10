@@ -249,7 +249,7 @@ error:
 
 inline void GC_unset_mark(BlockHeader *blkhdr, void *objhdr)
 {
-	int unset_bit = blkhdr->map[BLOCK(objhdr) >> LOG_WORD_BYTES];
+	int unset_bit = BLOCK(objhdr) / blkhdr->size;
 	blkhdr->marks[unset_bit / 8] &= ~(1U << remainder(unset_bit, 8));
 }
 
