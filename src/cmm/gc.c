@@ -247,10 +247,10 @@ error:
 	return;
 }
 
-inline void GC_unset_mark(BlockHeader *block_header, void *object_header)
+inline void GC_unset_mark(BlockHeader *blkhdr, void *objhdr)
 {
-	int unset_bit = block_header->map[BLOCK(object_header) >> LOG_WORD_BYTES];
-	block_header->marks[unset_bit / 8] &= ~(1U << remainder(unset_bit, 8));
+	int unset_bit = blkhdr->map[BLOCK(objhdr) >> LOG_WORD_BYTES];
+	blkhdr->marks[unset_bit / 8] &= ~(1U << remainder(unset_bit, 8));
 }
 
 static int GC_get_marks_size_bytes(int marks_size_bits)

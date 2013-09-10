@@ -40,6 +40,7 @@ void Object_release(GC *gc, void *obj)
 {
 	if(Object_validate(gc, obj)) {
 		ObjectHeader *objhdr = header(obj);
+
 		release(objhdr);
 
 		if(objhdr->ref_count == 0) {
