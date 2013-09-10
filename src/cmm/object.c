@@ -3,11 +3,12 @@
 
 static inline int Object_validate(GC *gc, void *obj)
 {
-	BlockHeader *block_header = GC_get_block_header(gc, obj);
+	BlockHeader *blkhdr = GC_get_block_header(gc, obj);
+	ObjectHeader *objhdr = header(obj);
 
-	if(block_header) {
-		if(block_header->map[BLOCK(header(obj)) >> LOG_WORD_BYTES] == 0) {
-			return header(obj)->ref_count > 0;
+	if(blkhdr) {
+		if(blkhdr->map[BLOCK(objhdr) >> LOG_WORD_BYTES] == 0) {
+			return objhdr->ref_count > 0;
 		}
 	}
 
@@ -38,14 +39,16 @@ error:
 void Object_release(GC *gc, void *obj)
 {
 	if(Object_validate(gc, obj)) {
-		release(header(obj));
+		ObjectHeader *objhdr = header(obj);
+		release(objhdr);
 
-		if(header(obj)->ref_count == 0) {
-			BlockHeader *block_header = GC_get_block_header(gc, header(obj));
-			GC_unset_mark(block_header, header(obj));
+		if(objhdr->ref_count == 0) {
+			BlockHeader *blkhdr = GC_get_block_header(gc, objhdr);
+			GC_unset_mark(blkhdr, objhdr);
 			
 			void **interior = obj;
-			void **objend = obj + block_header->size - sizeof(ObjectHeader);
+			void **objend = obj + blkhdr->size - sizeof(ObjectHeader);
+
 			while(interior < objend) {
 				Object_release(gc, *interior);
 				interior++;
