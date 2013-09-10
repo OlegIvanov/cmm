@@ -310,9 +310,24 @@ static inline int GC_check_marks_if_zero(uint8_t *marks, int marks_length)
 	return 1;
 }
 
+static int GC_remove_unused_blocks(GC *gc, List *unused_blocks)
+{
+	check(gc, "Argument 'gc' can't be NULL.");
+
+	LIST_FOREACH(unused_blocks, first, next, cur) {
+		List_remove(gc->block_list, cur->value);
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
 int GC_sweep(GC *gc)
 {
 	check(gc, "Argument 'gc' can't be NULL.");
+
+	List *unused_blocks = List_create();
 
 	LIST_FOREACH(gc->block_list, first, next, cur) {
 		BlockHeader *header = cur->value;
@@ -320,8 +335,12 @@ int GC_sweep(GC *gc)
 
 		if(GC_check_marks_if_zero(header->marks, marks_length)) {
 			List_push(gc->block_freelist, header);
+			List_push(unused_blocks, cur);
 		}
 	}
+
+	GC_remove_unused_blocks(gc, unused_blocks);
+	List_destroy(unused_blocks);
 
 	return 0;
 error:

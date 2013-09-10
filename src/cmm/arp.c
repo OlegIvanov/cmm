@@ -28,6 +28,8 @@ void ARPool_release(GC *gc)
 		Release(cur->value);
 	}
 
+	GC_sweep(gc);
+
 	List_destroy(arp->pool);
 	Release(arp);
 error:
@@ -50,5 +52,4 @@ void ARPool_release_callback(ARPool **arp)
 {
 	*arp = NULL;
 	ARPool_release(__GC__);
-	GC_sweep(__GC__);
 }
