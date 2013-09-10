@@ -28,8 +28,6 @@ void ARPool_release(GC *gc)
 		Release(cur->value);
 	}
 
-	GC_sweep(gc);
-
 	List_destroy(arp->pool);
 	Release(arp);
 error:

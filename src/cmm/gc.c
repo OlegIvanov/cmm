@@ -344,3 +344,7 @@ int GC_sweep(GC *gc)
 error:
 	return -1;
 }
+
+void GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index)
+{
+}

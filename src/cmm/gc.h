@@ -76,9 +76,10 @@ int GC_get_size(GC *gc, size_t size);
 void GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index);
 void GC_subdivide_block(GC *gc, void *block, uint16_t size_index);
 BottomIndex *GC_create_bottom_index(void *block);
-inline void GC_unset_mark(BlockHeader *block_header, void *object_header);
+inline void GC_unset_mark(BlockHeader *blkhdr, void *objhdr);
 BlockHeader *GC_create_block_header(GC *gc, uint16_t size_index);
 inline BlockHeader *GC_get_block_header(GC *gc, void *ptr);
 int GC_sweep(GC *gc);
+void GC_recycle_block(GC *gc, BlockHeader *blkhdr, uint16_t size_index);
 
 #endif
