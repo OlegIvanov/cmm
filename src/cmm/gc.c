@@ -302,6 +302,7 @@ int GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index)
 	bi->index[BOTTOM(block)] = header;
 
 	GC_update_heap(gc, block, blocks_number * BLOCK_SZ);
+
 	List_push(gc->block_list, header);
 	
 	return 0;
