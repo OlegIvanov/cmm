@@ -66,7 +66,7 @@ typedef struct GC {
 	Heap heap;
 	List *block_list;
 	List *freelists[SIZE_SZ];
-	List *blkfreelist;
+	List *block_freelist;
 	List *arp_stack;
 } GC;
 

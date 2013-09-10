@@ -25,15 +25,15 @@ void Object_new(GC *gc, size_t type_size, void **obj)
 	List *freelist = gc->freelists[size_index];
 
 	if(List_count(freelist) == 0) {
-		if(List_last(gc->blkfreelist) == NULL) {
+		if(List_count(gc->block_freelist) == 0) {
 			GC_sweep(gc);
-			if(List_last(gc->blkfreelist) == NULL) {
+			if(List_count(gc->block_freelist) == 0) {
 				GC_allocate_block(gc, 1, size_index);
 			} else {
-				GC_recycle_block(gc, List_pop(gc->blkfreelist), size_index);
+				GC_recycle_block(gc, List_pop(gc->block_freelist), size_index);
 			}
 		} else {
-			GC_recycle_block(gc, List_pop(gc->blkfreelist), size_index);
+			GC_recycle_block(gc, List_pop(gc->block_freelist), size_index);
 		}
 	}
 
