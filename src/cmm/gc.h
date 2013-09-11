@@ -72,14 +72,15 @@ typedef struct GC {
 	int16_t *obj_map;
 	Heap heap;
 	List *block_list;
-	List *freelists[SIZE_SZ];
 	List *block_freelist;
+	List *freelists[SIZE_SZ];
 	List *arp_stack;
 } GC;
 
 extern GC *__GC__;
 
 GC *GC_create();
+void GC_destroy(GC *gc);
 int GC_get_size(GC *gc, size_t size);
 int GC_allocate_block(GC *gc, int blocks_number, uint16_t size_index);
 inline void GC_unset_mark(BlockHeader *blkhdr, void *objhdr);

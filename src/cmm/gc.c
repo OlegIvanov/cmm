@@ -1,6 +1,7 @@
 #include <cmm/gc.h>
 #include <cmm/dbg.h>
 #include <unistd.h>
+#include <cmm/arp.h>
 
 GC *__GC__;
 
@@ -238,19 +239,82 @@ GC *GC_create()
 
 	return gc;
 error:
+	GC_destroy(gc);
+	return NULL;
+}
+
+static void GC_destroy_bottom_index(BottomIndex *bi)
+{
+	if(bi) {
+		free(bi->index);
+		if(bi->hash_link) {
+			GC_destroy_bottom_index(bi->hash_link);
+		}
+	}
+	free(bi);
+}
+
+void GC_destroy(GC *gc)
+{
+	uint32_t i = 0;
+
 	if(gc) {
-		List_destroy(gc->block_freelist);
-		List_destroy(gc->block_list);
-		List_destroy(gc->arp_stack);
-		free(gc->obj_map);
+		if(gc->top_index) {
+			for(i = 0; i < TOP_SZ; i++) {
+				if(gc->top_index[i] != gc->all_nils) {
+					GC_destroy_bottom_index(gc->top_index[i]);
+				}
+			}
+		}
+		free(gc->top_index);
+
 		if(gc->all_nils) {
 			free(gc->all_nils->index);
 		}
 		free(gc->all_nils);
-		free(gc->top_index);
+
+		free(gc->obj_map);
+
+		if(gc->block_list) {
+			LIST_FOREACH(gc->block_list, first, next, cur) {
+				BlockHeader *blkhdr = cur->value;
+				if(blkhdr) {
+					free(blkhdr->marks);
+					free(blkhdr->block);
+				}
+				free(blkhdr);
+			}
+		}
+		List_destroy(gc->block_list);
+
+		if(gc->block_freelist){
+			LIST_FOREACH(gc->block_freelist, first, next, cur) {
+				BlockHeader *blkhdr = cur->value;
+				if(blkhdr) {
+					free(blkhdr->marks);
+					free(blkhdr->block);
+				}
+				free(blkhdr);
+			}
+		}
+		List_destroy(gc->block_freelist);
+
+		for(i = 0; i < SIZE_SZ; i++) {
+			List_destroy(gc->freelists[i]);
+		}
+
+		if(gc->arp_stack) {
+			LIST_FOREACH(gc->arp_stack, first, next, cur) {
+				ARPool *arp = cur->value;
+				if(arp) {
+					List_destroy(arp->pool);
+				}
+				free(arp);
+			}
+		}
+		List_destroy(gc->arp_stack);
 	}
 	free(gc);
-	return NULL;
 }
 
 int GC_get_size(GC *gc, size_t size)
