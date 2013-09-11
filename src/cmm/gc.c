@@ -181,19 +181,6 @@ static inline int GC_check_marks_if_zero(uint8_t *marks, int marks_length)
 	return 1;
 }
 
-static int GC_remove_unused_blocks(GC *gc, List *unused_blocks)
-{
-	check(gc, "Argument 'gc' can't be NULL.");
-
-	LIST_FOREACH(unused_blocks, first, next, cur) {
-		List_remove(gc->block_list, cur->value);
-	}
-
-	return 0;
-error:
-	return -1;
-}
-
 static BottomIndex *GC_create_bottom_index(void *block)
 {
 	BottomIndex *bi = calloc(1, sizeof(BottomIndex));
@@ -394,7 +381,7 @@ int GC_sweep(GC *gc)
 	check(gc, "Argument 'gc' can't be NULL.");
 
 	List *unused_blocks = List_create();
-
+	
 	LIST_FOREACH(gc->block_list, first, next, cur) {
 		BlockHeader *blkhdr = cur->value;
 		int marks_length = GC_get_marks_size_bytes(BLOCK_SZ / blkhdr->size);
@@ -404,8 +391,14 @@ int GC_sweep(GC *gc)
 			List_push(unused_blocks, cur);
 		}
 	}
+	
+	// Redundant brackets for avoiding redeclaration some inner variables of LIST_FOREACH
+	{
+		LIST_FOREACH(unused_blocks, first, next, cur) {
+			List_remove(gc->block_list, cur->value);
+		}
+	}
 
-	GC_remove_unused_blocks(gc, unused_blocks);
 	List_destroy(unused_blocks);
 
 	return 0;
