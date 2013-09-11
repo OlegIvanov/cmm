@@ -1,7 +1,7 @@
 #include <cmm/gc.h>
+#include <cmm/arp.h>
 #include <cmm/dbg.h>
 #include <unistd.h>
-#include <cmm/arp.h>
 
 GC *__GC__;
 
