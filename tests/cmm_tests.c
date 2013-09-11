@@ -3,8 +3,8 @@
 
 GC *gc;
 
-#define ref(obj) RetainCount(obj)
-#define ref_msg "Invalid reference count."
+#define count(obj) 			RetainCount(obj)
+#define count_msg			"Invalid reference count."
 
 void test_setup()
 {
@@ -84,21 +84,21 @@ char *test_gc_sweep()
 char *test_release_1()
 {
 	C *c = NULL;
-	mu_assert(ref(c) == -1, ref_msg);
+	mu_assert(count(c) == -1, count_msg);
 
 	New(C, c);
-	mu_assert(ref(c) == 1, ref_msg);
-	mu_assert(ref(c->F_B) == -1, ref_msg);
+	mu_assert(count(c) == 1, count_msg);
+	mu_assert(count(c->F_B) == -1, count_msg);
 
 	New(B, c->F_B);
-	mu_assert(ref(c->F_B) == 1, ref_msg);
+	mu_assert(count(c->F_B) == 1, count_msg);
 
 	New(A, c->F_B->F_A);
-	mu_assert(ref(c->F_B->F_A) == 1, ref_msg);
+	mu_assert(count(c->F_B->F_A) == 1, count_msg);
 	
 	Release(c->F_B);
-	mu_assert(ref(c->F_B) == -1, ref_msg);
-	mu_assert(ref(c->F_B->F_A) == -1, ref_msg);
+	mu_assert(count(c->F_B) == -1, count_msg);
+	mu_assert(count(c->F_B->F_A) == -1, count_msg);
 
 	return NULL;
 }
@@ -106,18 +106,18 @@ char *test_release_1()
 char *test_release_2()
 {
 	B *b = NULL;
-	mu_assert(ref(b) == -1, ref_msg);
+	mu_assert(count(b) == -1, count_msg);
 
 	New(B, b);
-	mu_assert(ref(b) == 1, ref_msg);
+	mu_assert(count(b) == 1, count_msg);
 
 	// cyclical reference
 	Copy(b->F_A, b);
-	mu_assert(ref(b) == 2, ref_msg);
-	mu_assert(ref(b->F_A) == 2, ref_msg);
+	mu_assert(count(b) == 2, count_msg);
+	mu_assert(count(b->F_A) == 2, count_msg);
 
 	Release(b);
-	mu_assert(ref(b) == 1, ref_msg);
+	mu_assert(count(b) == 1, count_msg);
 
 	return NULL;
 }
@@ -125,27 +125,27 @@ char *test_release_2()
 char *test_copy_1()
 {
 	B *b = NULL;
-	mu_assert(ref(b) == -1, ref_msg);
+	mu_assert(count(b) == -1, count_msg);
 
 	New(B, b);
-	mu_assert(ref(b) == 1, ref_msg);
+	mu_assert(count(b) == 1, count_msg);
 
 	New(A, b->F_A);
-	mu_assert(ref(b) == 1, ref_msg);
-	mu_assert(ref(b->F_A) == 1, ref_msg);
+	mu_assert(count(b) == 1, count_msg);
+	mu_assert(count(b->F_A) == 1, count_msg);
 
 	A *a = NULL;
-	mu_assert(ref(a) == -1, ref_msg);
+	mu_assert(count(a) == -1, count_msg);
 
 	Copy(a, b->F_A);
-	mu_assert(ref(a) == 2, ref_msg);
+	mu_assert(count(a) == 2, count_msg);
 
 	Copy(a, NULL);
-	mu_assert(ref(a) == -1, ref_msg);
-	mu_assert(ref(b->F_A) == 1, ref_msg);
+	mu_assert(count(a) == -1, count_msg);
+	mu_assert(count(b->F_A) == 1, count_msg);
 
 	Copy(b->F_A, NULL);
-	mu_assert(ref(b->F_A) == -1, ref_msg);
+	mu_assert(count(b->F_A) == -1, count_msg);
 
 	return NULL;
 }
@@ -153,23 +153,23 @@ char *test_copy_1()
 char *test_copy_2()
 {
 	B *b = NULL;
-	mu_assert(ref(b) == -1, ref_msg);
+	mu_assert(count(b) == -1, count_msg);
 
 	New(B, b);
-	mu_assert(ref(b) == 1, ref_msg);
+	mu_assert(count(b) == 1, count_msg);
 
 	Copy(b, b);
-	mu_assert(ref(b) == 1, ref_msg);
+	mu_assert(count(b) == 1, count_msg);
 
 	B *b1 = NULL;
-	mu_assert(ref(b1) == -1, ref_msg);
+	mu_assert(count(b1) == -1, count_msg);
 
 	Copy(b1, b);
-	mu_assert(ref(b) == 2, ref_msg);
-	mu_assert(ref(b1) == 2, ref_msg);
+	mu_assert(count(b) == 2, count_msg);
+	mu_assert(count(b1) == 2, count_msg);
 
 	Copy(b1, b1);
-	mu_assert(ref(b1) == 2, ref_msg);
+	mu_assert(count(b1) == 2, count_msg);
 
 	return NULL;
 }
@@ -178,17 +178,17 @@ char *test_arp_1()
 {
 	ARP()
 		B *b = NULL;
-		mu_assert(ref(b) == -1, ref_msg);
+		mu_assert(count(b) == -1, count_msg);
 
 		New(B, b);
-		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
 
 		Autorelease(b);
-		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
 
 		New(A, b->F_A);
-		mu_assert(ref(b) == 1, ref_msg);
-		mu_assert(ref(b->F_A) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
+		mu_assert(count(b->F_A) == 1, count_msg);
 	}
 
 	return NULL;
@@ -197,29 +197,29 @@ char *test_arp_1()
 char *test_arp_2()
 {
 	A *a = NULL;
-	mu_assert(ref(a) == -1, ref_msg);
+	mu_assert(count(a) == -1, count_msg);
 
 	ARP()
 		B *b = NULL;
-		mu_assert(ref(b) == -1, ref_msg);
+		mu_assert(count(b) == -1, count_msg);
 
 		New(B, b);
-		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
 
 		Autorelease(b);
-		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
 
 		New(A, b->F_A);
-		mu_assert(ref(b) == 1, ref_msg);
-		mu_assert(ref(b->F_A) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
+		mu_assert(count(b->F_A) == 1, count_msg);
 
 		Copy(a, b->F_A);
-		mu_assert(ref(b) == 1, ref_msg);
-		mu_assert(ref(b->F_A) == 2, ref_msg);
-		mu_assert(ref(a) == 2, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
+		mu_assert(count(b->F_A) == 2, count_msg);
+		mu_assert(count(a) == 2, count_msg);
 	}
 
-	mu_assert(ref(a) == 1, ref_msg);
+	mu_assert(count(a) == 1, count_msg);
 
 	return NULL;
 }
@@ -228,34 +228,34 @@ char *test_arp_3()
 {
 	ARP()
 		B *b = NULL;
-		mu_assert(ref(b) == -1, ref_msg);
+		mu_assert(count(b) == -1, count_msg);
 
 		New(B, b);
-		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
 
 		New(A, b->F_A);
-		mu_assert(ref(b) == 1, ref_msg);
+		mu_assert(count(b) == 1, count_msg);
 
 		Autorelease(b);
 
 		ARP()
 			C *c = NULL;
-			mu_assert(ref(c) == -1, ref_msg);
+			mu_assert(count(c) == -1, count_msg);
 
 			New(C, c);
-			mu_assert(ref(c) == 1, ref_msg);
+			mu_assert(count(c) == 1, count_msg);
 
 			Copy(c->F_B, b);
-			mu_assert(ref(b) == 2, ref_msg);
+			mu_assert(count(b) == 2, count_msg);
 
 			Copy(c, NULL);
-			mu_assert(ref(c) == -1, ref_msg);
-			mu_assert(ref(b) == 1, ref_msg);
+			mu_assert(count(c) == -1, count_msg);
+			mu_assert(count(b) == 1, count_msg);
 
 			Autorelease(b);
 		}
 
-		mu_assert(ref(b) == -1, ref_msg);
+		mu_assert(count(b) == -1, count_msg);
 	}
 
 	return NULL;
