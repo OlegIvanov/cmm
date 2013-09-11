@@ -56,19 +56,27 @@ char *test_gc_init_obj_map()
 
 char *test_gc_sweep()
 {
-	C *c = NULL;
-	mu_assert(ref(c) == -1, ref_msg);
-
 	size_t objsize = sizeof(C) + sizeof(ObjectHeader);
 	int size_index = GC_get_size(gc, objsize);
 
 	int objects_number = BLOCK_SZ / gc->size_map[size_index];
 	mu_assert(objects_number == 256, "Wrong number of objects.");
 
+	C *c = NULL;	
+	C *temp = NULL;
+
+	New(C, c);
+	
+	// Not retain! Just simply copy pointer.
+	temp = c;
+
 	int i = 0;
-	for(i = 0; i < objects_number; i++) {
+	for(i = 1; i < objects_number; i++) {
 		New(C, c);
 	}
+
+	New(C, c);
+	mu_assert(c == temp, "Should be equal to address of the beginning of the block.");
 
 	return NULL;
 }
