@@ -8,6 +8,7 @@ GC *gc;
 
 void test_setup()
 {
+	GC_CREATE();
 	gc = __GC__;
 }
 

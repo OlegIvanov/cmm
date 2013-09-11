@@ -38,6 +38,13 @@
 // This only works if "b" is a power of two.
 #define remainder(a, b)				((a) & (b - 1))
 
+#define GC_CREATE() \
+if(__GC__) { \
+	log_err("Instance of garbage collector already exist."); \
+} else { \
+	__GC__ = GC_create(); \
+}
+
 typedef struct BlockHeader {
 	uint32_t size;
 	int16_t *map;
