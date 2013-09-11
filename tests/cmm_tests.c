@@ -280,6 +280,34 @@ trying_to_avoid_releasing:
 	return NULL;
 }
 
+A *Create_A()
+{
+	A *a = NULL;
+	mu_assert(count(a) == -1, count_msg);
+
+	New(A, a);
+	mu_assert(count(a) == 1, count_msg);
+
+	Autorelease(a);
+
+	return a;
+}
+
+char *test_arp_5()
+{
+	A *a = NULL;
+	mu_assert(count(a) == -1, count_msg);
+
+	ARP()
+		a = Create_A();
+		mu_assert(count(a) == 1, count_msg);
+	}
+
+	mu_assert(count(a) == -1, count_msg);
+	
+	return NULL;
+}
+
 char *all_tests() {
 	mu_suite_start();
 
@@ -302,6 +330,7 @@ char *all_tests() {
 	mu_run_test(test_arp_2);
 	mu_run_test(test_arp_3);
 	mu_run_test(test_arp_4);
+	mu_run_test(test_arp_5);
 
 	GC_DESTROY();
 
