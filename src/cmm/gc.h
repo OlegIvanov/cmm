@@ -36,14 +36,16 @@
 #define BLOCK(Ptr)					(intcast(Ptr) & (UINTPTR_MAX >> (__WORDSIZE - LOG_BLOCK_SZ)))
 
 // This only works if "b" is a power of two.
-#define remainder(a, b)				((a) & (b - 1))
+#define remainder(a, b)				((a) & ((b) - 1))
 
-#define GC_CREATE() \
-if(__GC__) { \
-	log_err("Instance of garbage collector already exist."); \
-} else { \
-	__GC__ = GC_create(); \
-}
+#define GC_CREATE()					if(__GC__) { \
+										log_err("Instance of garbage collector already exist."); \
+									} else { \
+										__GC__ = GC_create(); \
+									}
+
+#define GC_DESTROY()				GC_destroy(__GC__); \
+									__GC__ = NULL;
 
 typedef struct BlockHeader {
 	uint32_t size;

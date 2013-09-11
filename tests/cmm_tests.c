@@ -8,7 +8,6 @@ GC *gc;
 
 void test_setup()
 {
-	GC_CREATE();
 	gc = __GC__;
 }
 
@@ -265,6 +264,8 @@ char *test_arp_3()
 char *all_tests() {
 	mu_suite_start();
 
+	GC_CREATE();
+
 	test_setup();
 
 	mu_run_test(test_gc_init_size_map);
@@ -281,6 +282,8 @@ char *all_tests() {
 	mu_run_test(test_arp_1);
 	mu_run_test(test_arp_2);
 	mu_run_test(test_arp_3);
+
+	GC_DESTROY();
 
 	return NULL;
 }

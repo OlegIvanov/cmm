@@ -213,6 +213,17 @@ error:
 	return NULL;
 }
 
+static void GC_destroy_bottom_index(BottomIndex *bi)
+{
+	if(bi) {
+		free(bi->index);
+		if(bi->hash_link) {
+			GC_destroy_bottom_index(bi->hash_link);
+		}
+	}
+	free(bi);
+}
+
 GC *GC_create()
 {
 	GC *gc = calloc(1, sizeof(GC));
@@ -241,17 +252,6 @@ GC *GC_create()
 error:
 	GC_destroy(gc);
 	return NULL;
-}
-
-static void GC_destroy_bottom_index(BottomIndex *bi)
-{
-	if(bi) {
-		free(bi->index);
-		if(bi->hash_link) {
-			GC_destroy_bottom_index(bi->hash_link);
-		}
-	}
-	free(bi);
 }
 
 void GC_destroy(GC *gc)
